@@ -14,8 +14,11 @@ The whole interface is in Arabic (RTL) and works on mobile and desktop.
 
 | Feature | What it does |
 |---|---|
+| ⏳ **Answer-first hero** | Days until the first expected truffles and where, plus a season strip of real daily rain (thunder highlighted) against the expected truffle window. Shareable on WhatsApp. |
 | 🗺️ **Live radar** | Interactive map that scores every truffle ground from 0 to 100. Shows daily Wasm rainfall, thunder days, soil moisture, temperature, the 7-day rain forecast and the expected emergence window. |
 | ✨ **Ask Faqqa** | Ask in plain Arabic and pick your city. Llama reads the live data and returns a structured plan: the best 1 to 3 areas, timing, tips, safety notes and a confidence level. |
+| 📍 **Home city** | Pick your city once (saved in the browser). Distances, "closest to me" sorting, the map marker and Ask Faqqa all use it. Each area has a directions link and a WhatsApp share. |
+| 🌱 **Field guide** | An illustrated cross-section of the ground: Wasm rain, the Rogrog (*Helianthemum*) host plant, the cracked mound, and how deep to dig. |
 | 📷 **Identify your truffle** | Upload a photo. Llama 4 Vision identifies the type (Zubaidi, Khalasi, Jibai, Hober), then estimates quality, freshness and an approximate price per kg. |
 
 ## Architecture
@@ -86,6 +89,8 @@ score = 100 × ground × (0.45·rain + 0.15·thunder + 0.15·soil + 0.10·temp +
 | `temp` | Mean temperature over the last 14 days | ideal 12–26 °C |
 | `forecast` | Rain expected in the next 7 days | full at 15 mm |
 | `ground` | How well known the area is for truffles (folk knowledge) | 0.6 – 1.0 |
+
+The score is shown to users as one of four words: **عالية** (high, ≥ 70), **متوسطة** (medium, ≥ 45), **ضعيفة** (low, ≥ 25) and **معدومة** (none).
 
 When accumulated rain first crosses **10 mm** ("effective rain"), the expected emergence window is **60–75 days** later.
 

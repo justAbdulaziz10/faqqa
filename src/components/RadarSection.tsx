@@ -139,8 +139,31 @@ function AreaPanel({ area, km, cityName }: { area: AreaScore; km: number; cityNa
           ? <>الفقع متوقع هنا بين <b className="text-dune">{arDate(area.emergenceWindow.from)}</b> و<b className="text-dune">{arDate(area.emergenceWindow.to)}</b>.</>
           : <>ما نزل عليها مطر كافي للحين، فما نتوقع فقع قريب.</>}
       </p>
+      <div className="flex flex-wrap gap-2 text-sm">
+        <a
+          href={`https://www.google.com/maps/dir/?api=1&destination=${area.lat},${area.lon}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-full bg-bolt px-4 py-2 font-semibold text-ink transition hover:brightness-95"
+        >
+          خذني لها
+        </a>
+        <a
+          href={`https://wa.me/?text=${encodeURIComponent(shareText(area))}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-full border border-mist px-4 py-2 transition hover:border-cream/50"
+        >
+          أرسلها لربعك
+        </a>
+      </div>
     </article>
   );
+}
+
+function shareText(area: AreaScore) {
+  const when = area.emergenceWindow ? ` الفقع متوقع بين ${arDate(area.emergenceWindow.from)} و${arDate(area.emergenceWindow.to)}.` : "";
+  return `${area.name} (${area.region}): فرصة الفقع ${scoreLabel(area.score)}.${when}\nhttps://faqqa.vercel.app/#radar`;
 }
 
 const kmText = (km: number) => (km < 15 ? "قريبة منك" : `${km} كم`);

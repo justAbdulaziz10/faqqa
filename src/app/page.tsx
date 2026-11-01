@@ -6,6 +6,8 @@ import { Advisor } from "@/components/Advisor";
 import { Identify } from "@/components/Identify";
 import { SeasonTimeline, type SeasonDay } from "@/components/SeasonTimeline";
 import { CityProvider } from "@/components/CityProvider";
+import { FieldGuide } from "@/components/FieldGuide";
+import { SITE } from "@/lib/site";
 
 const DAY = 86_400_000;
 
@@ -28,14 +30,14 @@ function verdict(radar: Radar, today: string) {
     .filter((a) => a.emergenceWindow)
     .sort((a, b) => a.emergenceWindow!.from.localeCompare(b.emergenceWindow!.from))[0];
   if (!first?.emergenceWindow) {
-    return { window: null, title: "الموسم لسا بدري", detail: "ما نزل مطر كافي على أي منطقة للحين. الفقع يحتاج 10 ملم أو أكثر من مطر الوسم." };
+    return { window: null, title: "الموسم لسا بدري", share: "الموسم لسا بدري على الفقع.", detail: "ما نزل مطر كافي على أي منطقة للحين. الفقع يحتاج 10 ملم أو أكثر من مطر الوسم." };
   }
   const w = first.emergenceWindow;
   const days = Math.round((Date.parse(w.from) - Date.parse(today)) / DAY);
   if (days > 0) {
-    return { window: w, title: <>أول فقع متوقع بعد <span className="num text-bolt">{days}</span> يوم</>, detail: `في ${first.name} وما حولها، بين ${arDate(w.from)} و${arDate(w.to)}.` };
+    return { window: w, share: `أول فقع متوقع بعد ${days} يوم،`, title: <>أول فقع متوقع بعد <span className="num text-bolt">{days}</span> يوم</>, detail: `في ${first.name} وما حولها، بين ${arDate(w.from)} و${arDate(w.to)}.` };
   }
-  return { window: w, title: "وقت الفقع بدأ", detail: `أقرب منطقة متوقع فيها الفقع الحين: ${first.name}.` };
+  return { window: w, title: "وقت الفقع بدأ", share: "وقت الفقع بدأ!", detail: `أقرب منطقة متوقع فيها الفقع الحين: ${first.name}.` };
 }
 
 export default async function Home() {
@@ -60,6 +62,14 @@ export default async function Home() {
             <div className="mt-8 max-w-xl border-s-2 border-bolt ps-4">
               <p className="font-display text-2xl font-semibold leading-snug md:text-3xl">{v.title}</p>
               <p className="mt-1.5 leading-7 text-cream/75">{v.detail}</p>
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(`${v.share} ${v.detail}\n${SITE.url}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-block text-sm text-bolt underline decoration-bolt/40 underline-offset-4 hover:decoration-bolt"
+              >
+                أرسل التوقع لربعك في واتساب
+              </a>
             </div>
           ) : (
             <p role="alert" className="mt-8 max-w-xl rounded-xl border border-alert/40 bg-alert/10 p-3 text-sm">بيانات المطر ما وصلت. حدث الصفحة بعد دقائق.</p>
@@ -79,6 +89,7 @@ export default async function Home() {
       </section>
 
       {radar ? <RadarSection radar={radar} /> : null}
+      <FieldGuide />
       <Advisor />
       <Identify />
     </CityProvider>

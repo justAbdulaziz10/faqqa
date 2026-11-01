@@ -1,4 +1,4 @@
-import { arMonth } from "@/lib/format";
+import { arDate, arMonth } from "@/lib/format";
 
 const DAY = 86_400_000;
 
@@ -57,6 +57,7 @@ export function SeasonTimeline({ seasonStart, today, days, emergence }: {
         {days.map((d) => (
           <div
             key={d.date}
+            title={`${arDate(d.date)}: ${d.rain} ملم${d.thunder ? " مع رعد" : ""}${d.forecast ? " (متوقع)" : ""}`}
             className={`absolute bottom-0 rounded-t-[1px] ${d.forecast ? "border border-b-0 border-dashed border-rain/80" : d.thunder ? "bg-bolt" : "bg-rain"}`}
             style={{ right: `${pos(d.date)}%`, width: `max(2px, calc(${dayWidth}% - 1px))`, height: `${d.rain > 0.2 ? Math.max(6, (d.rain / max) * 100) : 0}%` }}
           />
