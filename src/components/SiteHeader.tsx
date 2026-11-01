@@ -10,11 +10,12 @@ const NAV: { href: string; label: string; desktop?: boolean }[] = [
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-[1000] border-b border-mist/60 bg-ink/85 backdrop-blur-md">
+    <>
       <p className="bg-ink-2 px-4 py-1.5 text-center text-[12px] leading-5 text-muted">
         مشروع شخصي تجريبي لأكاديمية طويق. التقديرات تقريبية وليست دقيقة 100٪.{" "}
         <Link href="/terms" className="text-cream underline underline-offset-4">اقرأ الشروط</Link>
       </p>
+      <header className="sticky top-0 z-[1000] border-b border-mist/60 bg-ink/85 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3">
         <Link href="/" className="flex items-center gap-2.5 text-cream" aria-label="فقّاع، الصفحة الرئيسية">
           <Logo className="size-8" />
@@ -28,6 +29,7 @@ export function SiteHeader() {
           ))}
         </nav>
       </div>
-    </header>
+      </header>
+    </>
   );
 }

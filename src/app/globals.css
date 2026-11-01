@@ -98,6 +98,7 @@ body {
 .btn-bolt:hover { background: #fff3bf; }
 .btn-bolt:active { transform: translateY(1px); }
 .btn-bolt:disabled { opacity: .65; cursor: wait; }
+.btn-bolt[data-empty]:disabled { background: var(--color-cloud); color: var(--color-muted); opacity: 1; cursor: not-allowed; }
 
 @keyframes shimmer { 0% { background-position: -400px 0 } 100% { background-position: 400px 0 } }
 .skeleton { background: linear-gradient(90deg, rgba(154,166,189,.06), rgba(154,166,189,.16), rgba(154,166,189,.06)); background-size: 800px 100%; animation: shimmer 1.4s infinite linear; border-radius: 10px; }

@@ -52,7 +52,7 @@ export default async function Home() {
       <Advisor />
       <Identify />
 
-      <section className="mx-auto max-w-7xl px-5 pt-28" aria-labelledby="how">
+      <section className="mx-auto max-w-7xl px-5 mt-20 md:mt-28" aria-labelledby="how">
         <h2 id="how" className="font-display text-4xl md:text-5xl">من المطر إلى الجواب</h2>
         <ol className="mt-10 grid gap-10 md:grid-cols-3 md:gap-8">
           {[

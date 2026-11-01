@@ -17,7 +17,7 @@ export function RadarSection({ radar }: { radar: Radar }) {
   const updated = new Date(radar.generatedAt).toLocaleString("ar-SA", { timeZone: "Asia/Riyadh", day: "numeric", month: "long", hour: "numeric", minute: "2-digit" });
 
   return (
-    <section id="radar" className="scroll-mt-28 pt-24" aria-labelledby="radar-title">
+    <section id="radar" className="scroll-mt-20 mt-16 md:mt-24" aria-labelledby="radar-title">
       <div className="mx-auto flex max-w-7xl flex-wrap items-end justify-between gap-4 px-5">
         <div>
           <h2 id="radar-title" className="font-display text-4xl md:text-5xl">وين شربت الأرض؟</h2>
@@ -35,7 +35,7 @@ export function RadarSection({ radar }: { radar: Radar }) {
           <RadarMap areas={radar.areas} selectedId={selectedId} onSelect={setSelectedId} />
         </div>
         {selected && (
-          <div className="px-5 md:absolute md:bottom-5 md:left-10 md:top-5 md:z-[500] md:w-[380px] md:px-0">
+          <div className="px-5 md:absolute md:left-10 md:top-5 md:z-[500] md:max-h-[calc(100%-2.5rem)] md:w-[380px] md:overflow-y-auto md:px-0">
             <AreaPanel area={selected} />
           </div>
         )}

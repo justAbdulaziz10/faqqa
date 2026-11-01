@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: "الخصوصية", description: "ك�
 
 export default function PrivacyPage() {
   return (
-    <PageShell eyebrow="آخر تحديث: نوفمبر ٢٠٢٦" title="سياسة الخصوصية" intro="باختصار: ما نطلب منك تسجيل، وما نحفظ أسئلتك ولا صورك.">
+    <PageShell eyebrow="آخر تحديث: نوفمبر 2026" title="سياسة الخصوصية" intro="باختصار: ما نطلب منك تسجيل، وما نحفظ أسئلتك ولا صورك.">
       <Block title="وش نجمع؟">
         <ul>
           <li><b>لا حسابات ولا تسجيل دخول</b>، ولا نطلب اسمك أو رقمك أو بريدك.</li>

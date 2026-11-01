@@ -1,11 +1,11 @@
 import Link from "next/link";
 
-export function PageShell({ eyebrow, title, intro, children }: { eyebrow: string; title: string; intro?: React.ReactNode; children: React.ReactNode }) {
+export function PageShell({ eyebrow, title, intro, children }: { eyebrow?: string; title: string; intro?: React.ReactNode; children: React.ReactNode }) {
   return (
     <article className="mx-auto max-w-3xl px-4 pt-14 md:pt-20">
       <Link href="/" className="text-sm text-muted hover:text-cream">رجوع للرئيسية</Link>
-      <p className="mt-6 text-sm text-bolt">{eyebrow}</p>
-      <h1 className="font-display text-4xl leading-tight md:text-5xl">{title}</h1>
+      <h1 className="mt-6 font-display text-4xl leading-tight md:text-5xl">{title}</h1>
+      {eyebrow && <p className="mt-2 text-sm text-muted">{eyebrow}</p>}
       {intro ? <p className="mt-4 text-lg leading-9 text-muted">{intro}</p> : null}
       <div className="mt-10 flex flex-col gap-10">{children}</div>
     </article>

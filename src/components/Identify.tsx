@@ -46,7 +46,7 @@ export function Identify() {
   }
 
   return (
-    <section id="identify" className="mx-auto max-w-7xl scroll-mt-28 px-5 pt-28" aria-labelledby="identify-title">
+    <section id="identify" className="mx-auto max-w-7xl scroll-mt-20 px-5 mt-20 md:mt-28" aria-labelledby="identify-title">
       <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
         <div>
           <h2 id="identify-title" className="font-display text-4xl md:text-5xl">زبيدي ولا خلاسي؟</h2>
@@ -85,7 +85,7 @@ export function Identify() {
           </button>
           <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp" capture="environment" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
           <div className="mt-4 flex items-center gap-4">
-            <button type="button" onClick={analyze} disabled={loading || !image} className="btn-bolt flex items-center gap-2 px-6 py-3 disabled:cursor-not-allowed">
+            <button type="button" onClick={analyze} disabled={loading || !image} data-empty={!image || undefined} className="btn-bolt flex items-center gap-2 px-6 py-3 disabled:cursor-not-allowed">
               {loading ? <><Spinner /> يفحص الصورة</> : "تعرّف على الفقعة"}
             </button>
             {image && !loading && <button type="button" onClick={() => { setImage(null); setResult(null); }} className="text-sm text-muted underline underline-offset-4 hover:text-cream">صورة ثانية</button>}

@@ -40,7 +40,7 @@ export function Advisor() {
   }
 
   return (
-    <section id="advisor" className="mx-auto max-w-3xl scroll-mt-28 px-5 pt-28" aria-labelledby="advisor-title">
+    <section id="advisor" className="mx-auto max-w-3xl scroll-mt-20 px-5 mt-20 md:mt-28" aria-labelledby="advisor-title">
       <h2 id="advisor-title" className="font-display text-4xl md:text-5xl">اسأل فقّاع</h2>
       <p className="mt-3 leading-8 text-muted">اكتب سؤالك بالعامية. Meta Llama 4 يقرأ أرقام اليوم لكل المناطق ويرد عليك بخطة طلعة.</p>
 
