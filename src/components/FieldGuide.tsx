@@ -17,7 +17,7 @@ export function FieldGuide() {
         <p className="mt-3 max-w-xl leading-8 text-ink/70">أربع علامات يعرفها أهل البر. الأولى نحسبها لك من المطر، والباقي عليك.</p>
       </div>
 
-      <div className="mx-auto mt-8 max-w-6xl [mask-image:linear-gradient(to_right,transparent,black_7%,black_93%,transparent)]">
+      <div className="mx-auto mt-8 max-w-6xl [mask-image:linear-gradient(to_right,transparent,black_16%,black_84%,transparent)]">
         <GroundSection />
       </div>
 

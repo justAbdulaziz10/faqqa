@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Radar, AreaScore } from "@/lib/radar";
 import { distanceKm } from "@/lib/areas";
 import { arDate, arDateTime, scoreText, scoreLabel, SCALE } from "@/lib/format";
@@ -18,6 +18,17 @@ export function RadarSection({ radar }: { radar: Radar }) {
   const [sort, setSort] = useState<Sort>("score");
   const [showAll, setShowAll] = useState(false);
   const [focus, setFocus] = useState(0);
+
+  // Shared links (?area=id#radar) open that area's panel and fly the map to it.
+  useEffect(() => {
+    const id = new URLSearchParams(location.search).get("area");
+    if (!id || !radar.areas.some((a) => a.id === id)) return;
+    const frame = requestAnimationFrame(() => {
+      setSelectedId(id);
+      setFocus((f) => f + 1);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [radar.areas]);
 
   const rows = useMemo(() => {
     const withKm = radar.areas.map((a) => ({ ...a, km: distanceKm(city, a) }));
@@ -171,7 +182,7 @@ function AreaPanel({ area, km, cityName }: { area: AreaScore; km: number; cityNa
 
 function shareText(area: AreaScore) {
   const when = area.emergenceWindow ? ` الفقع متوقع بين ${arDate(area.emergenceWindow.from)} و${arDate(area.emergenceWindow.to)}.` : "";
-  return `${area.name} (${area.region}): فرصة الفقع ${scoreLabel(area.score)}.${when}\nhttps://faqqa.vercel.app/#radar`;
+  return `${area.name} (${area.region}): فرصة الفقع ${scoreLabel(area.score)}.${when}\nhttps://faqqa.vercel.app/?area=${area.id}#radar`;
 }
 
 const kmText = (km: number) => (km < 15 ? "قريبة منك" : `${km} كم`);

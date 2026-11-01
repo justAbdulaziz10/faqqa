@@ -30,14 +30,14 @@ function verdict(radar: Radar, today: string) {
     .filter((a) => a.emergenceWindow)
     .sort((a, b) => a.emergenceWindow!.from.localeCompare(b.emergenceWindow!.from))[0];
   if (!first?.emergenceWindow) {
-    return { window: null, title: "الموسم لسا بدري", share: "الموسم لسا بدري على الفقع.", detail: "ما نزل مطر كافي على أي منطقة للحين. الفقع يحتاج 10 ملم أو أكثر من مطر الوسم." };
+    return { window: null, areaId: null, title: "الموسم لسا بدري", share: "الموسم لسا بدري على الفقع.", detail: "ما نزل مطر كافي على أي منطقة للحين. الفقع يحتاج 10 ملم أو أكثر من مطر الوسم." };
   }
   const w = first.emergenceWindow;
   const days = Math.round((Date.parse(w.from) - Date.parse(today)) / DAY);
   if (days > 0) {
-    return { window: w, share: `أول فقع متوقع بعد ${days} يوم،`, title: <>أول فقع متوقع بعد <span className="num text-bolt">{days}</span> يوم</>, detail: `في ${first.name} وما حولها، بين ${arDate(w.from)} و${arDate(w.to)}.` };
+    return { window: w, areaId: first.id, share: `أول فقع متوقع بعد ${days} يوم،`, title: <>أول فقع متوقع بعد <span className="num text-bolt">{days}</span> يوم</>, detail: `في ${first.name} وما حولها، بين ${arDate(w.from)} و${arDate(w.to)}.` };
   }
-  return { window: w, title: "وقت الفقع بدأ", share: "وقت الفقع بدأ!", detail: `أقرب منطقة متوقع فيها الفقع الحين: ${first.name}.` };
+  return { window: w, areaId: first.id, title: "وقت الفقع بدأ", share: "وقت الفقع بدأ!", detail: `أقرب منطقة متوقع فيها الفقع الحين: ${first.name}.` };
 }
 
 export default async function Home() {
@@ -63,7 +63,7 @@ export default async function Home() {
               <p className="font-display text-2xl font-semibold leading-snug md:text-3xl">{v.title}</p>
               <p className="mt-1.5 leading-7 text-cream/75">{v.detail}</p>
               <a
-                href={`https://wa.me/?text=${encodeURIComponent(`${v.share} ${v.detail}\n${SITE.url}`)}`}
+                href={`https://wa.me/?text=${encodeURIComponent(`${v.share} ${v.detail}\n${SITE.url}${v.areaId ? `/?area=${v.areaId}#radar` : ""}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-3 inline-block text-sm text-bolt underline decoration-bolt/40 underline-offset-4 hover:decoration-bolt"
