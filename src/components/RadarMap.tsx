@@ -1,13 +1,30 @@
 "use client";
 
-import { MapContainer, TileLayer, CircleMarker, Tooltip, ZoomControl } from "react-leaflet";
+import { useEffect } from "react";
+import { MapContainer, TileLayer, CircleMarker, Tooltip, ZoomControl, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import type { LatLngBoundsExpression } from "leaflet";
 import type { AreaScore } from "@/lib/radar";
 import { scoreColor, scoreLabel } from "@/lib/format";
 
-export default function RadarMap({ areas, selectedId, highlightIds = [], onSelect, city }: {
+/** Fly to the chosen area, keeping it clear of the floating details panel on wide screens. */
+function FlyTo({ target, focus }: { target: { lat: number; lon: number } | null; focus: number }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!focus || !target) return;
+    const zoom = Math.max(map.getZoom(), 6);
+    const wide = window.innerWidth >= 768;
+    const point = map.project([target.lat, target.lon], zoom).subtract([wide ? 210 : 0, 0]);
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    map.flyTo(map.unproject(point, zoom), zoom, { animate: !reduce, duration: 0.8 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only on a new focus request
+  }, [focus]);
+  return null;
+}
+
+export default function RadarMap({ areas, selectedId, highlightIds = [], onSelect, city, focus = 0 }: {
   areas: AreaScore[];
+  focus?: number;
   city?: { name: string; lat: number; lon: number };
   selectedId: string | null;
   highlightIds?: string[];
@@ -31,6 +48,7 @@ export default function RadarMap({ areas, selectedId, highlightIds = [], onSelec
       zoomControl={false}
     >
       <ZoomControl position="topright" />
+      <FlyTo target={areas.find((a) => a.id === selectedId) ?? null} focus={focus} />
       <TileLayer
         url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
         attribution="Imagery &copy; Esri, Maxar, Earthstar Geographics"

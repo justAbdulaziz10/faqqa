@@ -17,6 +17,7 @@ export function RadarSection({ radar }: { radar: Radar }) {
   const [selectedId, setSelectedId] = useState<string>(radar.areas[0]?.id ?? "");
   const [sort, setSort] = useState<Sort>("score");
   const [showAll, setShowAll] = useState(false);
+  const [focus, setFocus] = useState(0);
 
   const rows = useMemo(() => {
     const withKm = radar.areas.map((a) => ({ ...a, km: distanceKm(city, a) }));
@@ -42,8 +43,8 @@ export function RadarSection({ radar }: { radar: Radar }) {
       </div>
 
       <div className="relative mx-auto mt-8 max-w-7xl md:px-5">
-        <div className="relative h-[62svh] min-h-[380px] overflow-hidden border-y border-mist md:h-[640px] md:rounded-[18px] md:border">
-          <RadarMap areas={radar.areas} selectedId={selected?.id ?? null} onSelect={setSelectedId} city={city} />
+        <div id="radar-map" className="relative h-[62svh] min-h-[380px] scroll-mt-16 overflow-hidden border-y border-mist md:h-[640px] md:rounded-[18px] md:border">
+          <RadarMap areas={radar.areas} selectedId={selected?.id ?? null} onSelect={setSelectedId} city={city} focus={focus} />
         </div>
         {selected && (
           <div className="px-5 md:absolute md:left-10 md:top-5 md:z-[500] md:max-h-[calc(100%-2.5rem)] md:w-[380px] md:overflow-y-auto md:px-0">
@@ -78,7 +79,7 @@ export function RadarSection({ radar }: { radar: Radar }) {
           {list.map((a, i) => (
             <li key={a.id}>
               <button
-                onClick={() => { setSelectedId(a.id); document.getElementById("radar")?.scrollIntoView({ behavior: "smooth" }); }}
+                onClick={() => { setSelectedId(a.id); setFocus((f) => f + 1); document.getElementById("radar-map")?.scrollIntoView({ behavior: "smooth" }); }}
                 aria-current={a.id === selected?.id}
                 className="grid w-full grid-cols-[1.75rem_1fr_auto] items-center gap-3 py-3 text-start transition hover:bg-ink-2 md:grid-cols-[2.5rem_15rem_1fr_6rem_6rem_4.5rem] md:gap-5 md:px-2"
               >
