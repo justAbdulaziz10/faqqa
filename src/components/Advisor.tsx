@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Advisor as AdvisorResult } from "@/lib/schemas";
 import { driveHours, scoreColor, scoreLabel } from "@/lib/format";
 import { CitySelect, useCity } from "./CityProvider";
@@ -163,12 +163,25 @@ function Plan({ result }: { result: Result }) {
 }
 
 function Loading({ city }: { city: string }) {
+  const steps = ["يقرأ مطر الوسم في 24 منطقة", `يحسب المسافة من ${city}`, "يقارن الرعد ورطوبة التربة", "يكتب لك الجواب"];
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setStep((s) => Math.min(s + 1, steps.length - 1)), 1800);
+    return () => clearInterval(t);
+  }, [steps.length]);
   return (
     <div className="mt-10 flex flex-col gap-3">
-      <p className="text-sm text-muted">يقرأ مطر كل منطقة ويحسب المسافة من {city}…</p>
-      <div className="skeleton h-8 w-2/3" />
+      <ol className="flex flex-col gap-1.5 text-sm" aria-hidden>
+        {steps.map((s, i) => (
+          <li key={s} className={`flex items-center gap-2 transition-colors duration-300 ${i < step ? "text-muted" : i === step ? "text-cream" : "text-muted/40"}`}>
+            <span className={`size-1.5 rounded-full ${i < step ? "bg-rain" : i === step ? "animate-pulse bg-bolt" : "bg-mist"}`} />
+            {s}
+          </li>
+        ))}
+      </ol>
+      <p className="sr-only">فقاع يجهز الجواب</p>
+      <div className="skeleton mt-2 h-8 w-2/3" />
       <div className="skeleton h-20 w-full" />
-      <div className="skeleton h-32 w-full" />
     </div>
   );
 }

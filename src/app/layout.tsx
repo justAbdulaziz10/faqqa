@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   description: "فقاع يتابع مطر الوسم ورعده في 24 منطقة فقع، ويقول لك وين تروح ومتى، ويعرف نوع الفقعة من صورتها.",
   openGraph: { title: `${SITE.name} | ${SITE.tagline}`, description: "شوف وين نزل مطر الوسم هالسنة، ومتى يطلع الفقع.", locale: "ar_SA", type: "website" },
   twitter: { card: "summary_large_image" },
+  appleWebApp: { capable: true, title: SITE.name, statusBarStyle: "black" },
 };
 
 export const viewport: Viewport = { themeColor: "#0f1729" };
