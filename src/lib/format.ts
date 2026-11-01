@@ -53,7 +53,8 @@ export const SCALE = [
   { min: 70, color: "#e0794a", label: "عالية" },
   { min: 45, color: "#e9cf8a", label: "متوسطة" },
   { min: 25, color: "#8cc4d8", label: "ضعيفة" },
-  { min: 0, color: "#4d5d7e", label: "معدومة" },
+  // Dim on the map so dead areas recede; lifted for text to pass WCAG AA on ink.
+  { min: 0, color: "#4d5d7e", text: "#7d8bab", label: "معدومة" },
 ] as const;
 
 function band(score: number) {
@@ -61,3 +62,8 @@ function band(score: number) {
 }
 export const scoreColor = (score: number) => band(score).color;
 export const scoreLabel = (score: number) => band(score).label;
+/** Colour for the chance label as text (always AA on the dark surfaces). */
+export const scoreText = (score: number) => {
+  const b = band(score);
+  return "text" in b ? b.text : b.color;
+};

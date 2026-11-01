@@ -75,7 +75,7 @@ export function Identify() {
                   <span className="text-sm text-muted">JPG أو PNG أو WEBP</span>
                 </span>}
           </button>
-          <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp" capture="environment" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
+          <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
           <div className="mt-4 flex items-center gap-4">
             <button type="button" onClick={analyze} disabled={loading || !image} data-empty={!image || undefined} className="btn-bolt flex items-center gap-2 px-6 py-3 disabled:cursor-not-allowed">
               {loading ? <><Spinner /> يفحص الصورة</> : "افحص الصورة"}

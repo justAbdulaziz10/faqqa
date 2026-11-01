@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import type { Radar, AreaScore } from "@/lib/radar";
 import { distanceKm } from "@/lib/areas";
-import { arDate, arDateTime, scoreColor, scoreLabel, SCALE } from "@/lib/format";
+import { arDate, arDateTime, scoreText, scoreLabel, SCALE } from "@/lib/format";
 import { RainBars } from "./RainBars";
 import { CitySelect, useCity } from "./CityProvider";
 
@@ -59,12 +59,11 @@ export function RadarSection({ radar }: { radar: Radar }) {
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <label htmlFor="city-list" className="text-muted">أنا في</label>
             <CitySelect id="city-list" />
-            <div role="radiogroup" aria-label="الترتيب" className="flex rounded-lg border border-mist p-0.5">
+            <div role="group" aria-label="الترتيب" className="flex rounded-lg border border-mist p-0.5">
               {([["score", "الأعلى فرصة"], ["near", "الأقرب لي"]] as const).map(([k, label]) => (
                 <button
                   key={k}
-                  role="radio"
-                  aria-checked={sort === k}
+                  aria-pressed={sort === k}
                   onClick={() => setSort(k)}
                   className={`rounded-md px-3 py-1 transition ${sort === k ? "bg-cloud text-cream" : "text-muted hover:text-cream"}`}
                 >
@@ -102,7 +101,7 @@ export function RadarSection({ radar }: { radar: Radar }) {
                 </span>
                 <span className="num hidden text-sm text-muted md:block">{a.wasmRain} ملم</span>
                 <span className="num hidden text-sm text-muted md:block">{kmText(a.km)}</span>
-                <span className="text-end text-sm font-semibold" style={{ color: scoreColor(a.score) }}>{scoreLabel(a.score)}</span>
+                <span className="text-end text-sm font-semibold" style={{ color: scoreText(a.score) }}>{scoreLabel(a.score)}</span>
               </button>
             </li>
           ))}
@@ -122,15 +121,15 @@ export function RadarSection({ radar }: { radar: Radar }) {
 
 function AreaPanel({ area, km, cityName }: { area: AreaScore; km: number; cityName: string }) {
   return (
-    <article className="panel mt-4 flex flex-col gap-4 bg-ink-2/95 p-5 backdrop-blur md:mt-0" aria-live="polite">
-      <header className="flex items-start justify-between gap-3">
+    <article className="panel mt-4 flex flex-col gap-4 bg-ink-2/95 p-5 backdrop-blur md:mt-0">
+      <header className="flex items-start justify-between gap-3" aria-live="polite" aria-atomic>
         <div>
           <h3 className="font-display text-2xl font-bold">{area.name}</h3>
           <p className="text-sm text-muted">{area.region}، {km < 15 ? <>قريبة من {cityName}</> : <>تبعد عن {cityName} <span className="num">{km}</span> كم</>}</p>
         </div>
         <div className="text-end">
           <div className="text-xs text-muted">الفرصة</div>
-          <div className="mt-0.5 text-xl font-semibold" style={{ color: scoreColor(area.score) }}>{scoreLabel(area.score)}</div>
+          <div className="mt-0.5 text-xl font-semibold" style={{ color: scoreText(area.score) }}>{scoreLabel(area.score)}</div>
           <div className="num text-xs text-muted">{area.score} من 100</div>
         </div>
       </header>

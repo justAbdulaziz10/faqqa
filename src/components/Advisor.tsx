@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Advisor as AdvisorResult } from "@/lib/schemas";
-import { driveHours, scoreColor, scoreLabel } from "@/lib/format";
+import { driveHours, scoreText, scoreLabel } from "@/lib/format";
 import { CitySelect, useCity } from "./CityProvider";
 
 type Rec = AdvisorResult["recommendations"][number] & {
@@ -97,7 +97,7 @@ export function Advisor({ context = [] }: { context?: AdvisorContext }) {
               <li key={a.id}>
                 <p className="flex items-baseline justify-between gap-3">
                   <span className="font-medium">{a.name}</span>
-                  <span className="text-sm font-semibold" style={{ color: scoreColor(a.score) }}>{scoreLabel(a.score)}</span>
+                  <span className="text-sm font-semibold" style={{ color: scoreText(a.score) }}>{scoreLabel(a.score)}</span>
                 </p>
                 <p className="num text-[13px] text-muted">{a.region}، {a.wasmRain} ملم{a.thunderDays === 1 ? "، يوم رعد" : a.thunderDays === 2 ? "، يومين رعد" : a.thunderDays > 2 ? `، ${a.thunderDays} أيام رعد` : ""}</p>
               </li>
@@ -147,7 +147,7 @@ function Plan({ result }: { result: Result }) {
             </div>
             <div className="md:text-end">
               <div className="text-xs text-muted">الفرصة</div>
-              <div className="text-xl font-semibold" style={{ color: scoreColor(r.area.score) }}>{scoreLabel(r.area.score)}</div>
+              <div className="text-xl font-semibold" style={{ color: scoreText(r.area.score) }}>{scoreLabel(r.area.score)}</div>
             </div>
           </li>
         ))}
