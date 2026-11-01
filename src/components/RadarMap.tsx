@@ -4,10 +4,11 @@ import { MapContainer, TileLayer, CircleMarker, Tooltip, ZoomControl } from "rea
 import "leaflet/dist/leaflet.css";
 import type { LatLngBoundsExpression } from "leaflet";
 import type { AreaScore } from "@/lib/radar";
-import { scoreColor } from "@/lib/format";
+import { scoreColor, scoreLabel } from "@/lib/format";
 
-export default function RadarMap({ areas, selectedId, highlightIds = [], onSelect }: {
+export default function RadarMap({ areas, selectedId, highlightIds = [], onSelect, city }: {
   areas: AreaScore[];
+  city?: { name: string; lat: number; lon: number };
   selectedId: string | null;
   highlightIds?: string[];
   onSelect: (id: string) => void;
@@ -53,12 +54,17 @@ export default function RadarMap({ areas, selectedId, highlightIds = [], onSelec
           >
             <Tooltip direction="top" offset={[0, -6]}>
               <span dir="rtl" style={{ fontFamily: "inherit" }}>
-                <b>{a.name}</b> · {a.score}/100 · {a.label}
+                <b>{a.name}</b>: فرصة {scoreLabel(a.score)}
               </span>
             </Tooltip>
           </CircleMarker>
         );
       })}
+      {city && (
+        <CircleMarker center={[city.lat, city.lon]} radius={5} interactive={false} pathOptions={{ color: "#0f1729", weight: 2, fillColor: "#efe7d6", fillOpacity: 1 }}>
+          <Tooltip permanent direction="bottom" offset={[0, 6]} className="city-label">{city.name}</Tooltip>
+        </CircleMarker>
+      )}
     </MapContainer>
   );
 }

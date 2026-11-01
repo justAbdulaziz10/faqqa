@@ -1,6 +1,6 @@
 export const SITE = {
-  name: "فقّاع",
-  tagline: "رادار الفقع الذكي",
+  name: "فقاع",
+  tagline: "وين الفقع هالسنة؟",
   url: "https://faqqa.vercel.app",
   author: "عبدالعزيز الخليوي",
   github: "https://github.com/justAbdulaziz10",

@@ -21,10 +21,10 @@ Preconditions:
 
 - **Identify.** Upload a 1×1 PNG with a note. Run `$V drive identify`. Expect 200, `attempts` 1, `type` `زبيدي`, price 300–600, one stub call with `Bearer verify-faqqa-secret`, the vision model ID, and `photoForwarded` true.
 - **Retry.** Send the note `STUB_BAD_FIRST`. Run `$V drive identify-retry`. Expect 200, `attempts` 2, and two stub calls, the second with `retryFeedback` true.
-- **Bad image.** Send a GIF, then an empty image. Run `$V drive identify-validation`. Expect 400 with `صيغة الصورة غير مدعومة (PNG أو JPG أو WEBP)` and `ارفع صورة أولاً`, and `llamaNotCalled` true.
+- **Bad image.** Send a GIF, then an empty image. Run `$V drive identify-validation`. Expect 400 with `صيغة الصورة غير مدعومة (PNG أو JPG أو WEBP)` and `ارفع صورة أول`, and `llamaNotCalled` true.
 
 ## Gotchas
 
 - The stub wraps its JSON in prose and code fences on purpose, so `coerceJson` is exercised.
-- Images over 4 MB (string length) are rejected with `الصورة كبيرة جداً، جرّب صورة أصغر`. This is not driven.
+- Images over 4 MB (string length) are rejected with `الصورة كبيرة. جرب صورة أصغر`. This is not driven.
 - A 200 with a good-looking body is not proof. The break run dropped the photo and still returned 200, and only `photoForwarded` caught it.

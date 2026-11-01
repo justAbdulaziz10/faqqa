@@ -24,7 +24,7 @@
   --color-alert: #f09a8a;
 
   --font-sans: var(--font-readex), system-ui, sans-serif;
-  --font-display: var(--font-ruqaa), var(--font-readex), serif;
+  --font-display: var(--font-alexandria), var(--font-readex), sans-serif;
 }
 
 :root { color-scheme: dark; }
@@ -111,3 +111,5 @@ body {
 .leaflet-bar a { background: var(--color-cloud) !important; color: var(--color-cream) !important; border-color: var(--color-mist) !important; }
 .leaflet-tooltip { background: var(--color-ink) !important; color: var(--color-cream) !important; border: 1px solid var(--color-mist) !important; border-radius: 8px !important; box-shadow: none !important; }
 .leaflet-tooltip-top::before { border-top-color: var(--color-mist) !important; }
+.leaflet-tooltip.city-label { background: transparent !important; border: 0 !important; padding: 0 !important; color: var(--color-cream) !important; font-size: 12px; font-weight: 600; text-shadow: 0 1px 3px #0f1729, 0 0 2px #0f1729; }
+.leaflet-tooltip.city-label::before { display: none; }

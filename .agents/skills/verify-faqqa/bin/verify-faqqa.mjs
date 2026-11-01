@@ -143,7 +143,7 @@ const DRIVES = {
     const r = await call(st, "GET", "/");
     return { request: "GET /", status: r.status, evidence: { "home.html": r.text }, checks: {
       status200: r.status === 200, htmlLangAr: /<html[^>]*lang="ar"/.test(r.text), rtl: /dir="rtl"/.test(r.text),
-      titleHasBrand: /<title>[^<]*فقّاع[^<]*<\/title>/.test(r.text), skipLink: r.text.includes('href="#main"'),
+      titleHasBrand: /<title>[^<]*فقاع[^<]*<\/title>/.test(r.text), skipLink: r.text.includes('href="#main"'),
     } };
   },
   async "areas-index"(st) {
@@ -159,8 +159,8 @@ const DRIVES = {
     const long = await call(st, "POST", "/api/advisor", { question: "س".repeat(601) });
     const junk = await call(st, "POST", "/api/advisor", null);
     return { request: "POST /api/advisor (empty, 601 chars, no body)", response: { empty: empty.json, long: long.json, junk: junk.json }, checks: {
-      empty400: empty.status === 400 && empty.json?.error?.code === "invalid_input" && empty.json?.error?.message === "اكتب سؤالك أولاً",
-      long400: long.status === 400 && long.json?.error?.message === "السؤال طويل جداً (الحد ٦٠٠ حرف)",
+      empty400: empty.status === 400 && empty.json?.error?.code === "invalid_input" && empty.json?.error?.message === "اكتب سؤالك أول",
+      long400: long.status === 400 && long.json?.error?.message === "السؤال طويل. الحد 600 حرف",
       noBody400: junk.status === 400 && junk.json?.ok === false,
       llamaNotCalled: stubCalls(st).length === before,
     } };
@@ -193,7 +193,7 @@ const DRIVES = {
     const none = await call(st, "POST", "/api/identify", { image: "" });
     return { request: "POST /api/identify (gif, empty)", response: { gif: gif.json, none: none.json }, checks: {
       gif400: gif.status === 400 && gif.json?.error?.message === "صيغة الصورة غير مدعومة (PNG أو JPG أو WEBP)",
-      empty400: none.status === 400 && none.json?.error?.message === "ارفع صورة أولاً",
+      empty400: none.status === 400 && none.json?.error?.message === "ارفع صورة أول",
       llamaNotCalled: stubCalls(st).length === before,
     } };
   },

@@ -8,11 +8,11 @@ export function fail(status: number, code: string, message: string) {
 export function failFromError(err: unknown) {
   console.error("[faqqa]", err);
   if (err instanceof LlamaError) {
-    if (err.kind === "config") return fail(503, "llama_unconfigured", "خدمة الذكاء الاصطناعي غير مهيأة حالياً. حاول لاحقاً.");
-    if (err.kind === "invalid_output") return fail(502, "llama_invalid", "Llama أرجع رداً غير مكتمل مرتين. حاول مرة ثانية.");
-    return fail(502, "llama_unavailable", "تعذر الوصول إلى Llama الآن. حاول بعد لحظات.");
+    if (err.kind === "config") return fail(503, "llama_unconfigured", "خدمة الذكاء الاصطناعي متوقفة الحين. جرب بعدين.");
+    if (err.kind === "invalid_output") return fail(502, "llama_invalid", "Llama رجع رد ناقص مرتين. جرب مرة ثانية.");
+    return fail(502, "llama_unavailable", "ما قدرنا نوصل لـ Llama الحين. جرب بعد شوي.");
   }
-  return fail(500, "internal", "صار خطأ غير متوقع. حاول مرة ثانية.");
+  return fail(500, "internal", "صار خطأ غير متوقع. جرب مرة ثانية.");
 }
 
 // Best-effort per-IP limiter (per server instance) to protect the free Llama quota.
@@ -24,5 +24,5 @@ export function rateLimited(req: Request, limit = 8, windowMs = 60_000) {
   recent.push(now);
   hits.set(ip, recent);
   if (hits.size > 5000) hits.clear();
-  return recent.length > limit ? fail(429, "rate_limited", "طلبات كثيرة خلال وقت قصير. انتظر دقيقة وحاول مرة ثانية.") : null;
+  return recent.length > limit ? fail(429, "rate_limited", "طلبات كثيرة في وقت قصير. انتظر دقيقة وجرب مرة ثانية.") : null;
 }

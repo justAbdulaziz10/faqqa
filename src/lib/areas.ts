@@ -12,7 +12,7 @@ export type Area = {
 
 export const AREAS: Area[] = [
   { id: "hafr", name: "حفر الباطن", region: "الشرقية", lat: 28.43, lon: 45.97, ground: 1 },
-  { id: "summan", name: "الصمّان", region: "الشرقية", lat: 26.9, lon: 47.3, ground: 0.95 },
+  { id: "summan", name: "الصمان", region: "الشرقية", lat: 26.9, lon: 47.3, ground: 0.95 },
   { id: "rafha", name: "رفحاء", region: "الحدود الشمالية", lat: 29.63, lon: 43.5, ground: 1 },
   { id: "lina", name: "لينة", region: "الحدود الشمالية", lat: 28.75, lon: 43.77, ground: 0.95 },
   { id: "uwayqilah", name: "العويقيلة", region: "الحدود الشمالية", lat: 30.33, lon: 42.83, ground: 0.9 },
@@ -33,7 +33,7 @@ export const AREAS: Area[] = [
   { id: "dahna", name: "الدهناء", region: "الرياض", lat: 25.9, lon: 47.6, ground: 0.75 },
   { id: "olaya", name: "قرية العليا", region: "الشرقية", lat: 27.55, lon: 47.7, ground: 0.9 },
   { id: "nuayriyah", name: "النعيرية", region: "الشرقية", lat: 27.47, lon: 48.49, ground: 0.85 },
-  { id: "sarrar", name: "الصرّار", region: "الشرقية", lat: 26.98, lon: 48.38, ground: 0.8 },
+  { id: "sarrar", name: "الصرار", region: "الشرقية", lat: 26.98, lon: 48.38, ground: 0.8 },
   { id: "shamli", name: "الشملي", region: "حائل", lat: 26.98, lon: 40.07, ground: 0.65 },
 ];
 

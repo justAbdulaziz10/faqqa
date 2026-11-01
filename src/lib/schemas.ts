@@ -38,15 +38,15 @@ export const IdentifySchema = z.object({
 export type Identify = z.infer<typeof IdentifySchema>;
 
 export const AdvisorRequest = z.object({
-  question: z.string().trim().min(1, "اكتب سؤالك أولاً").max(600, "السؤال طويل جداً (الحد ٦٠٠ حرف)"),
+  question: z.string().trim().min(1, "اكتب سؤالك أول").max(600, "السؤال طويل. الحد 600 حرف"),
   originId: z.string().trim().min(1).max(30).optional(),
 });
 
 export const IdentifyRequest = z.object({
   image: z
     .string()
-    .min(1, "ارفع صورة أولاً")
+    .min(1, "ارفع صورة أول")
     .regex(/^data:image\/(png|jpe?g|webp);base64,/, "صيغة الصورة غير مدعومة (PNG أو JPG أو WEBP)")
-    .max(4_000_000, "الصورة كبيرة جداً، جرّب صورة أصغر"),
+    .max(4_000_000, "الصورة كبيرة. جرب صورة أصغر"),
   note: z.string().trim().max(300).optional(),
 });

@@ -20,7 +20,7 @@ Preconditions:
 - Baseline preconditions from README.md.
 
 - **City list.** Run `$V drive areas-index`. The response is `ok:true`, `areas` is 24, and `origins` has 13 entries including `riyadh`.
-- **Bad input.** Run `$V drive advisor-validation`. Each request returns 400 `invalid_input`: an empty question gives `اكتب سؤالك أولاً`, a 601-character question gives `السؤال طويل جداً (الحد ٦٠٠ حرف)`, and no body also returns 400. `llamaNotCalled` is true.
+- **Bad input.** Run `$V drive advisor-validation`. Each request returns 400 `invalid_input`: an empty question gives `اكتب سؤالك أول`, a 601-character question gives `السؤال طويل. الحد 600 حرف`, and no body also returns 400. `llamaNotCalled` is true.
 - **Answer (manual, network).** Run `curl -s -XPOST $BASE/api/advisor -H 'content-type: application/json' -d '{"question":"وين أطلع الأسبوع الجاي؟","originId":"riyadh"}'`. Open-Meteo is needed. The stub returns an identify-shaped payload, so expect 502 `llama_invalid` until the stub learns the advisor shape.
 
 ## Gotchas

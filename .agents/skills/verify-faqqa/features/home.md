@@ -1,12 +1,12 @@
 # Home page shell
 
-`/` renders the Arabic RTL site shell: header, skip link, main region, and footer. The page body is still the create-next-app placeholder.
+`/` renders the Arabic RTL site shell: header, skip link, main region, and footer. The body has the hero with the season strip, the rain map, Ask Faqqa and the photo check.
 
 ## Sub-features
 
 - `home-render` returns 200 HTML for `/`.
 - `home-rtl` sets `<html lang="ar" dir="rtl">`.
-- `home-title` puts `فقّاع | رادار الفقع الذكي` in the title.
+- `home-title` puts `فقاع | وين الفقع هالسنة؟` in the title.
 - `home-skip` offers a skip link to `#main`.
 
 ## How to get to it (user POV)

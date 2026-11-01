@@ -7,7 +7,7 @@ export function RainBars({ daily }: { daily: AreaScore["daily"] }) {
   const last = daily[daily.length - 1]?.date;
   return (
     <figure>
-      <figcaption className="mb-2 text-xs text-muted">المطر يوم بيوم</figcaption>
+      <figcaption className="mb-2 text-xs text-muted">المطر اليومي من بداية الوسم</figcaption>
       <div className="flex h-20 items-end gap-[2px] border-b border-mist" role="img" aria-label="أمطار يومية منذ بداية الوسم مع توقعات الأسبوع القادم">
         {daily.map((d) => (
           <div key={d.date} className="group relative flex h-full flex-1 items-end">
@@ -27,7 +27,7 @@ export function RainBars({ daily }: { daily: AreaScore["daily"] }) {
       </div>
       <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-muted">
         <span className="flex items-center gap-1"><i className="inline-block size-2 rounded-sm bg-rain" /> مطر</span>
-        <span className="flex items-center gap-1"><i className="inline-block size-2 rounded-sm bg-bolt" /> يوم رعد</span>
+        <span className="flex items-center gap-1"><i className="inline-block size-2 rounded-sm bg-bolt" /> مطر مع رعد</span>
         <span className="flex items-center gap-1"><i className="inline-block size-2 rounded-sm border border-dashed border-rain/70" /> متوقع</span>
       </div>
     </figure>

@@ -5,7 +5,7 @@ import { AREAS, type Area } from "./areas";
 // ~60–75 days after the first effective Wasm rain, especially with thunder.
 export type AreaScore = Area & {
   score: number;
-  label: "ممتاز" | "واعد" | "ضعيف" | "شبه معدوم";
+  label: "عالية" | "متوسطة" | "ضعيفة" | "معدومة";
   wasmRain: number;
   forecastRain: number;
   rainDays: number;
@@ -107,7 +107,7 @@ export async function buildRadar(now = new Date()): Promise<Radar> {
     const forecastScore = clamp(forecastRain / 15);
     const weighted = 0.45 * rainScore + 0.15 * thunderScore + 0.15 * soilScore + 0.1 * tempScore + 0.15 * forecastScore;
     const score = Math.round(100 * weighted * area.ground);
-    const label: AreaScore["label"] = score >= 70 ? "ممتاز" : score >= 45 ? "واعد" : score >= 25 ? "ضعيف" : "شبه معدوم";
+    const label: AreaScore["label"] = score >= 70 ? "عالية" : score >= 45 ? "متوسطة" : score >= 25 ? "ضعيفة" : "معدومة";
 
     return {
       ...area,

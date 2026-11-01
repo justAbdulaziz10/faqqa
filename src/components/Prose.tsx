@@ -4,7 +4,7 @@ export function PageShell({ eyebrow, title, intro, children }: { eyebrow?: strin
   return (
     <article className="mx-auto max-w-3xl px-4 pt-14 md:pt-20">
       <Link href="/" className="text-sm text-muted hover:text-cream">رجوع للرئيسية</Link>
-      <h1 className="mt-6 font-display text-4xl leading-tight md:text-5xl">{title}</h1>
+      <h1 className="mt-6 font-display text-4xl font-bold leading-tight md:text-5xl">{title}</h1>
       {eyebrow && <p className="mt-2 text-sm text-muted">{eyebrow}</p>}
       {intro ? <p className="mt-4 text-lg leading-9 text-muted">{intro}</p> : null}
       <div className="mt-10 flex flex-col gap-10">{children}</div>
@@ -15,7 +15,7 @@ export function PageShell({ eyebrow, title, intro, children }: { eyebrow?: strin
 export function Block({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="font-display text-2xl text-cream">{title}</h2>
+      <h2 className="font-display text-2xl font-bold text-cream">{title}</h2>
       <div className="mt-3 space-y-3 leading-8 text-muted [&_b]:text-cream [&_code]:rounded [&_code]:bg-cloud [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-[0.85em] [&_code]:text-bolt [&_li]:ms-5 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ul]:list-disc [&_ul]:space-y-1">
         {children}
       </div>

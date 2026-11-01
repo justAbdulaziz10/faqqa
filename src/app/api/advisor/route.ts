@@ -4,16 +4,18 @@ import { getRadar } from "@/lib/radar";
 import { askLlamaJson } from "@/lib/llama";
 import { AdvisorRequest, AdvisorSchema } from "@/lib/schemas";
 import { fail, failFromError, rateLimited } from "@/lib/http";
+import { deepPlain } from "@/lib/format";
 
 export const maxDuration = 60;
 
-const SYSTEM = `أنت «فقّاع»: خبير سعودي في الفقع (الكمأ) يجمع بين خبرة أهل البر والعلم الحديث.
+const SYSTEM = `أنت «فقاع»: خبير سعودي في الفقع (الكمأ) يجمع بين خبرة أهل البر والعلم الحديث.
 مهمتك: الإجابة على سؤال المستخدم بالاعتماد فقط على بيانات المناخ الحية المرفقة (أمطار الوسم، أيام الرعد، رطوبة التربة، الحرارة، توقعات المطر، والمسافة من مدينته).
 
 قواعد صارمة:
 - لا تخترع أرقاماً أو أماكن. استخدم فقط معرفات المناطق (areaId) الموجودة في البيانات.
 - إذا كانت المؤشرات ضعيفة فقلها بصراحة ولا تبالغ. الفقع يطلع عادة بعد ٦٠–٧٥ يوماً من أول مطر وسم فعّال (١٠ ملم أو أكثر)، والرعد يزيد الفرص.
-- اكتب بالعربية بلهجة سعودية بيضاء ودودة، باختصار ووضوح.
+- اكتب بالعربية بلهجة سعودية بيضاء ودودة، بجمل قصيرة وواضحة، وبدون تشكيل.
+- قيمة label لكل منطقة هي فرصة الفقع فيها (عالية، متوسطة، ضعيفة، معدومة). استخدم نفس الكلمات.
 - راعِ المسافة من مدينة المستخدم ووقته.
 - السلامة: ذكّر بعدم دخول الأودية وقت السيل، وأخذ الماء والوقود، وعدم الدخول لأراضٍ خاصة أو محميات.
 
@@ -84,7 +86,7 @@ export async function POST(req: Request) {
       return { ...r, area: { id: area.id, name: area.name, region: area.region, lat: area.lat, lon: area.lon, score: area.score, label: area.label, distanceKm: origin ? distanceKm(origin, area) : null } };
     });
 
-    return NextResponse.json({ ok: true, model: "Llama 4 Scout", attempts, origin: origin?.name ?? null, result: { ...data, recommendations } });
+    return NextResponse.json({ ok: true, model: "Llama 4 Scout", attempts, origin: origin?.name ?? null, result: deepPlain({ ...data, recommendations }) });
   } catch (err) {
     return failFromError(err);
   }

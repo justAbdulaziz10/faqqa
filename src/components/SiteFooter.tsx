@@ -7,13 +7,13 @@ export function SiteFooter() {
     <footer className="mt-32 border-t border-mist bg-ink-2">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 md:grid-cols-[1.4fr_1fr_auto]">
         <div className="max-w-md">
-          <div className="flex items-center gap-2.5"><Logo className="size-7" /><span className="font-display text-2xl leading-none">فقّاع</span></div>
+          <div className="flex items-center gap-2.5"><Logo className="size-7" /><span className="font-display text-2xl font-bold leading-none">فقاع</span></div>
           <p className="mt-4 text-sm leading-7 text-muted">
-            مشروع شخصي سويته لأنه مطلوب في معسكر أكاديمية طويق مع Meta وStartupbootcamp. الأرقام تقديرية من نموذج تجريبي، وليست دقيقة 100٪، وما تضمن وجود الفقع في أي مكان.
+            مشروع شخصي سويته لأنه مطلوب في معسكر أكاديمية طويق. الأرقام تقريبية وليست دقيقة 100٪، وما تضمن وجود الفقع في أي مكان.
           </p>
         </div>
         <nav aria-label="روابط الموقع" className="grid content-start gap-2.5 text-sm">
-          <Link href="/about" className="text-muted hover:text-cream">كيف يشتغل فقّاع</Link>
+          <Link href="/about" className="text-muted hover:text-cream">عن فقاع</Link>
           <Link href="/terms" className="text-muted hover:text-cream">الشروط وإخلاء المسؤولية</Link>
           <Link href="/privacy" className="text-muted hover:text-cream">الخصوصية</Link>
           <a href={SITE.repo} target="_blank" rel="noopener noreferrer" className="text-muted hover:text-cream">الكود على GitHub</a>
@@ -25,12 +25,12 @@ export function SiteFooter() {
           </a>
           <a href={SITE.coffee} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-[#ffdd00] px-4 py-2 text-sm font-semibold text-[#1a1a1a] transition hover:brightness-95">
             <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M5 8h12v6a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5zM17 10h1.5a2.5 2.5 0 0 1 0 5H17M8 3v2M12 3v2" /></svg>
-            اشترِ لي قهوة
+            ادعمني بقهوة
           </a>
         </div>
       </div>
       <p className="border-t border-mist px-5 py-4 text-center text-xs leading-6 text-muted">
-        المناخ: Open-Meteo (ECMWF وDWD) · الأقمار الصناعية: Esri وMaxar · الذكاء الاصطناعي: Meta Llama 4 · صورة الواجهة مولّدة بالذكاء الاصطناعي
+        بيانات المطر من Open-Meteo، والصور الفضائية من Esri، والردود من Meta Llama 4. صورة الواجهة مولدة بالذكاء الاصطناعي.
       </p>
     </footer>
   );

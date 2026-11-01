@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { askLlamaJson, VISION_MODEL } from "@/lib/llama";
 import { IdentifyRequest, IdentifySchema } from "@/lib/schemas";
 import { fail, failFromError, rateLimited } from "@/lib/http";
+import { deepPlain } from "@/lib/format";
 
 export const maxDuration = 60;
 
@@ -13,6 +14,7 @@ const SYSTEM = `أنت خبير سعودي في الفقع (الكمأ الصح�
 - هبر: صغير جداً، أبيض، يطلع مبكراً.
 إذا لم تكن الصورة لفقع فقل ذلك بوضوح (isTruffle=false و type="ليس فقعاً").
 لا تبالغ في الثقة؛ التعرف من الصورة تقديري. الأسعار تقديرية للكيلو بالريال في السوق السعودي وتتغير حسب الموسم.
+اكتب بلهجة سعودية بيضاء بجمل قصيرة وبدون تشكيل.
 نبّه إذا ظهرت علامات تلف أو عفن، أو إذا بدا مستورداً (مثلاً شكل موحّد جداً أو تغليف تجاري).
 اكتب بالعربية بلهجة سعودية بيضاء.
 
@@ -53,7 +55,7 @@ export async function POST(req: Request) {
       ],
       refine: (v) => (v.priceRangeSar && v.priceRangeSar.min > v.priceRangeSar.max ? "priceRangeSar.min يجب أن يكون أصغر من max" : null),
     });
-    return NextResponse.json({ ok: true, model: "Llama 4 Scout (Vision)", attempts, result: data });
+    return NextResponse.json({ ok: true, model: "Llama 4 Scout (Vision)", attempts, result: deepPlain(data) });
   } catch (err) {
     return failFromError(err);
   }
