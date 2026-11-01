@@ -50,9 +50,10 @@ export function cannedReply(q: string): Advisor | null {
 /** A plain answer straight from the data, used when Llama is unavailable. */
 export function fallbackPlan(areas: (AreaScore & { distanceKm: number | null })[], today: string): Advisor {
   const ranked = [...areas].sort((a, b) => b.score - (b.distanceKm ?? 0) / 40 - (a.score - (a.distanceKm ?? 0) / 40));
-  const picks = ranked.slice(0, 2);
+  const alive = ranked.filter((a) => a.label !== "معدومة");
   const nearest = [...areas].sort((a, b) => (a.distanceKm ?? 0) - (b.distanceKm ?? 0))[0];
-  if (nearest && !picks.some((p) => p.id === nearest.id)) picks.push(nearest);
+  // Recommend only places with some chance; if nothing has rain yet, point at the nearest one.
+  const picks = alive.length ? alive.slice(0, 3) : nearest ? [nearest] : [];
 
   const first = [...areas].filter((a) => a.emergenceWindow).sort((a, b) => a.emergenceWindow!.from.localeCompare(b.emergenceWindow!.from))[0];
   const days = first ? Math.round((Date.parse(first.emergenceWindow!.from) - Date.parse(today)) / 86_400_000) : null;
@@ -61,7 +62,7 @@ export function fallbackPlan(areas: (AreaScore & { distanceKm: number | null })[
     kind: "plan",
     headline: !first ? "الموسم لسا بدري" : days! > 0 ? `أول فقع متوقع بعد ${days} يوم` : "وقت الفقع بدأ",
     summary: first
-      ? `أعلى فرصة الحين في ${first.name}، والفقع متوقع فيها بين ${arDate(first.emergenceWindow!.from)} و${arDate(first.emergenceWindow!.to)}.`
+      ? `أقرب موعد للفقع في ${first.name}، والفقع متوقع فيها بين ${arDate(first.emergenceWindow!.from)} و${arDate(first.emergenceWindow!.to)}.`
       : "ما نزل مطر كافي على أي منطقة للحين. الفقع يحتاج 10 ملم أو أكثر من مطر الوسم.",
     recommendations: picks.map((a) => ({
       areaId: a.id,

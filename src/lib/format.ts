@@ -29,6 +29,9 @@ export function plain(s: string) {
 export function tidy(s: string) {
   return plain(s)
     .replace(/(^|[\s(«])و\s+(?=[\u0621-\u064A])/g, "$1و")
+    // Llama drifts into Egyptian/Levantine words; swap the unambiguous ones for Saudi ones.
+    .replace(/(^|[\s(«])(مش|كتير|ازاي|ليك)(?=$|[\s،.!؟:)»])/g, (_, pre: string, w: string) => pre + ({ مش: "مو", كتير: "كثير", ازاي: "كيف", ليك: "لك" } as Record<string, string>)[w])
+    .replace(/(^|[\s(«])(ما |لا )?تنصحك(?=$|[\s،.!؟])/g, "$1$2أنصحك")
     .replace(/[ \t]{2,}/g, " ")
     .trim();
 }
@@ -36,7 +39,10 @@ export function tidy(s: string) {
 /** Rough driving time at ~100 km/h, rounded to the half hour. */
 export function driveHours(km: number) {
   const h = Math.max(0.5, Math.round((km / 100) * 2) / 2);
-  return h <= 1 ? "ساعة تقريبا" : h === 2 ? "ساعتين تقريبا" : `${h} ساعات تقريبا`;
+  const whole = Math.floor(h);
+  const half = h % 1 ? " ونص" : "";
+  const base = whole === 0 ? "نص ساعة" : whole === 1 ? "ساعة" : whole === 2 ? "ساعتين" : whole <= 10 ? `${whole} ساعات` : `${whole} ساعة`;
+  return `${base}${whole === 0 ? "" : half} تقريبا`;
 }
 
 export function deepPlain<T>(value: T): T {
