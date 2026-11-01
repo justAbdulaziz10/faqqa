@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { AREAS, AREA_IDS, ORIGINS, distanceKm } from "@/lib/areas";
-import { buildRadar } from "@/lib/radar";
+import { getRadar } from "@/lib/radar";
 import { askLlamaJson } from "@/lib/llama";
 import { AdvisorRequest, AdvisorSchema } from "@/lib/schemas";
-import { fail, failFromError } from "@/lib/http";
+import { fail, failFromError, rateLimited } from "@/lib/http";
 
 export const maxDuration = 60;
 
@@ -29,6 +29,8 @@ const SYSTEM = `أنت «فقّاع»: خبير سعودي في الفقع (ال
 من ١ إلى ٣ توصيات، ومن ١ إلى ٤ نصائح سلامة.`;
 
 export async function POST(req: Request) {
+  const limited = rateLimited(req);
+  if (limited) return limited;
   const body = await req.json().catch(() => null);
   const parsed = AdvisorRequest.safeParse(body);
   if (!parsed.success) return fail(400, "invalid_input", parsed.error.issues[0]?.message ?? "مدخلات غير صحيحة");
@@ -37,7 +39,7 @@ export async function POST(req: Request) {
   const origin = ORIGINS.find((o) => o.id === originId) ?? null;
 
   try {
-    const radar = await buildRadar();
+    const radar = await getRadar();
     const candidates = radar.areas
       .map((a) => ({ ...a, distanceKm: origin ? distanceKm(origin, a) : null }))
       .sort((a, b) => b.score - (b.distanceKm ?? 0) / 40 - (a.score - (a.distanceKm ?? 0) / 40))

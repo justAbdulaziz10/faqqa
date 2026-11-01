@@ -1,3 +1,4 @@
+import { cacheLife } from "next/cache";
 import { AREAS, type Area } from "./areas";
 
 // Al-Wasm (الوسم) season starts on 16 October. Truffles typically emerge
@@ -134,3 +135,10 @@ export async function buildRadar(now = new Date()): Promise<Radar> {
 }
 
 function round1(n: number) { return Math.round(n * 10) / 10; }
+
+/** Cached radar: climate models update a few times a day, so serve it for hours. */
+export async function getRadar(): Promise<Radar> {
+  "use cache";
+  cacheLife("hours");
+  return buildRadar();
+}

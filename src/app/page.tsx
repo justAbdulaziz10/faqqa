@@ -1,15 +1,14 @@
 import Link from "next/link";
-import { buildRadar, type Radar } from "@/lib/radar";
+import { getRadar, type Radar } from "@/lib/radar";
 import { RadarSection } from "@/components/RadarSection";
 import { Advisor } from "@/components/Advisor";
 import { Identify } from "@/components/Identify";
 import { arDate } from "@/lib/format";
 
-export const revalidate = 10800;
 
 export default async function Home() {
   let radar: Radar | null = null;
-  try { radar = await buildRadar(); } catch (err) { console.error("[home] radar failed", err); }
+  try { radar = await getRadar(); } catch (err) { console.error("[home] radar failed", err); }
 
   const top = radar?.areas[0];
   const totalRain = radar ? Math.max(...radar.areas.map((a) => a.wasmRain)) : 0;

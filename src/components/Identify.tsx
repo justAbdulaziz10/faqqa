@@ -93,10 +93,10 @@ export function Identify() {
                   <p className="text-xs text-sand-dim">{result.isTruffle ? "النوع المتوقع" : "النتيجة"}</p>
                   <h3 className="font-display text-3xl text-ember">{result.type}</h3>
                 </div>
-                <div className="text-center">
+                {result.isTruffle && <div className="text-center">
                   <div className="font-display text-3xl">{Math.round(result.confidence)}٪</div>
                   <div className="text-xs text-sand-dim">ثقة النموذج</div>
-                </div>
+                </div>}
               </div>
               <p className="leading-8">{result.description}</p>
               <dl className="grid grid-cols-2 gap-2 text-sm">

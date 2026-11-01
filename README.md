@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# فقّاع · رادار الفقع الذكي
 
-## Getting Started
+> وين يطلع الفقع هالسنة؟ اسأل البيانات بدل التخمين.
 
-First, run the development server:
+**الموقع:** https://faqqa.vercel.app
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+فقّاع يحوّل الحكمة الشعبية «الفقع يطلع بعد رعد الوسم» لأرقام. يقرأ أمطار الوسم والرعد ورطوبة التربة من نماذج مناخ عالمية لـ 24 منطقة فقع معروفة في السعودية، ثم يستخدم **Meta Llama 4** ليعطيك خطة طلعة بلهجتك، ويتعرف على نوع الفقعة من صورتها.
+
+> ⚠️ مشروع شخصي تعليمي بنيته ضمن معسكر أكاديمية طويق (مع Meta وStartupbootcamp). التقديرات تقريبية **وليست دقيقة 100٪** ولا تضمن وجود الفقع.
+
+## المزايا
+
+| الميزة | الوصف |
+|---|---|
+| 🗺️ **الرادار الحي** | خريطة تفاعلية تعطي كل منطقة مؤشراً من 100، مع أمطار الوسم اليومية وأيام الرعد ورطوبة التربة والحرارة وتوقعات 7 أيام ونافذة الطلوع المتوقعة |
+| ✨ **اسأل فقّاع** | تكتب سؤالك بالعامية وتختار مدينتك، وLlama يحلل البيانات الحية ويرجع خطة منظمة: أفضل 1–3 مناطق، والتوقيت، والنصائح، والسلامة |
+| 📷 **صوّر فقعتك** | يتعرف Llama 4 Vision على النوع (زبيدي، خلاسي، جبي، هبر)، ويقدّر الجودة والطزاجة والسعر التقريبي |
+
+## البنية
+
+```
+المتصفح (Next.js + Tailwind، عربي RTL)
+   │  POST /api/advisor   { question, originId }
+   │  POST /api/identify  { image(dataURL) }
+   │  GET  /api/radar
+   ▼
+Next.js Route Handlers (Vercel)
+   ├─ تحقق من المدخلات بـ zod (فارغ، أطوال، صيغ الصور) + حد للطلبات لكل IP
+   ├─ lib/radar.ts → Open-Meteo (ECMWF / DWD ICON / ERA5) → معادلة المؤشر (مخزنة لساعة)
+   └─ lib/llama.ts → Cloudflare Worker (llama-worker/) → Workers AI: @cf/meta/llama-4-scout-17b-16e-instruct
+                      ├─ response_format: json_object
+                      ├─ تحقق zod صارم + تحقق أن areaId موجود فعلاً
+                      └─ إعادة محاولة واحدة مع إرسال أخطاء التحقق للنموذج، وإلا خطأ واضح للمستخدم
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### ماذا يرجع Llama؟
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**المستشار** (`AdvisorSchema` في `src/lib/schemas.ts`):
+```json
+{ "headline": "...", "summary": "...",
+  "recommendations": [{ "areaId": "rafha", "why": "...", "bestTime": "...", "tip": "..." }],
+  "seasonOutlook": "...", "safety": ["..."], "confidence": "منخفضة | متوسطة | عالية" }
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**التعرف على الصورة** (`IdentifySchema`):
+```json
+{ "isTruffle": true, "type": "زبيدي", "confidence": 72, "description": "...",
+  "quality": "جيدة", "freshness": "...", "priceRangeSar": { "min": 150, "max": 300 },
+  "tips": ["..."], "warnings": ["..."] }
+```
 
-## Learn More
+### معادلة المؤشر
+`score = 100 × ground × (0.45·rain + 0.15·thunder + 0.15·soil + 0.10·temp + 0.15·forecast)`
+- `rain`: أمطار الوسم منذ 16 أكتوبر (تكتمل عند 30 ملم)
+- `thunder`: أيام الرعد (رموز الطقس ≥ 95)
+- `soil`: رطوبة التربة على عمق 3–9 سم
+- `temp`: ملاءمة الحرارة (12–26°)
+- `forecast`: مطر الأسبوع القادم
+- `ground`: معامل شهرة المنطقة بالفقع (معرفة شعبية)
+- نافذة الطلوع = 60–75 يوماً بعد أول تراكم مطر ≥ 10 ملم
 
-To learn more about Next.js, take a look at the following resources:
+### معالجة الأخطاء
+- مدخل فارغ أو طويل أو صورة بصيغة خاطئة: 400 مع رسالة عربية واضحة
+- رد Llama ناقص أو مكسور: إعادة محاولة تلقائية، ثم 502 برسالة واضحة
+- Llama غير متاح أو انتهت المهلة (45 ثانية): 502
+- بيانات المناخ غير متاحة: الصفحة تعرض تنبيهاً بدل أن تنهار
+- طلبات كثيرة: 429
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## التشغيل محلياً
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm install
+cp .env.example .env.local   # ضع رابط ومفتاح الـ Worker
+npm run dev
+```
 
-## Deploy on Vercel
+### نشر الـ Worker (Llama)
+```bash
+cd llama-worker
+npx wrangler deploy
+npx wrangler secret put PROXY_SECRET
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## التقنيات
+Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · zod · Leaflet + OpenStreetMap/CARTO · Meta Llama 4 Scout (Cloudflare Workers AI) · Vercel
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## المصادر والرخص
+- بيانات الطقس: [Open-Meteo](https://open-meteo.com) (CC BY 4.0)
+- الخرائط: © OpenStreetMap contributors · © CARTO
+- النموذج: Meta Llama 4، خاضع لـ [Llama 4 Community License](https://www.llama.com/llama4/license/)
+
+---
+صنعه [عبدالعزيز الخليوي](https://github.com/justAbdulaziz10) · [☕ ادعمني بقهوة](https://buymeacoffee.com/justAbdulaziz10)

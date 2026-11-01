@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans_Arabic, Reem_Kufi } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -23,6 +24,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="ar" dir="rtl" className={`${plex.variable} ${kufi.variable}`}>
       <body className="min-h-dvh flex flex-col">
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:right-3 focus:z-50 focus:bg-ember focus:text-night focus:px-4 focus:py-2 focus:rounded-lg">تخطَّ إلى المحتوى</a>
+        <div className="border-b border-rust/30 bg-rust/15 px-4 py-2 text-center text-xs leading-6 text-sand">
+          ⚠️ مشروع شخصي تجريبي لمعسكر أكاديمية طويق · التقديرات تقريبية <b>وليست دقيقة ١٠٠٪</b> ولا تضمن وجود الفقع ·{" "}
+          <Link href="/terms" className="underline underline-offset-4">التفاصيل</Link>
+        </div>
         <SiteHeader />
         <main id="main" className="flex-1">{children}</main>
         <SiteFooter />

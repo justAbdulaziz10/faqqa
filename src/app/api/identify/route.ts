@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { askLlamaJson, VISION_MODEL } from "@/lib/llama";
 import { IdentifyRequest, IdentifySchema } from "@/lib/schemas";
-import { fail, failFromError } from "@/lib/http";
+import { fail, failFromError, rateLimited } from "@/lib/http";
 
 export const maxDuration = 60;
 
@@ -30,6 +30,8 @@ const SYSTEM = `أنت خبير سعودي في الفقع (الكمأ الصح�
 }`;
 
 export async function POST(req: Request) {
+  const limited = rateLimited(req);
+  if (limited) return limited;
   const body = await req.json().catch(() => null);
   const parsed = IdentifyRequest.safeParse(body);
   if (!parsed.success) return fail(400, "invalid_input", parsed.error.issues[0]?.message ?? "مدخلات غير صحيحة");
