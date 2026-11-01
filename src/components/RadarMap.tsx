@@ -22,6 +22,22 @@ function FlyTo({ target, focus }: { target: { lat: number; lon: number } | null;
   return null;
 }
 
+const COUNTRIES = [
+  { name: "العراق", lat: 32.6, lon: 44.2 },
+  { name: "الأردن", lat: 31.9, lon: 36.3 },
+  { name: "الكويت", lat: 29.5, lon: 47.6 },
+  { name: "الخليج العربي", lat: 27.4, lon: 50.7 },
+  { name: "البحر الأحمر", lat: 24.2, lon: 37.1 },
+];
+const CITIES = [
+  { name: "الرياض", lat: 24.71, lon: 46.68 },
+  { name: "المدينة المنورة", lat: 24.47, lon: 39.61 },
+  { name: "تبوك", lat: 28.38, lon: 36.57 },
+  { name: "حائل", lat: 27.52, lon: 41.69 },
+  { name: "بريدة", lat: 26.33, lon: 43.97 },
+  { name: "الدمام", lat: 26.43, lon: 50.1 },
+];
+
 export default function RadarMap({ areas, selectedId, highlightIds = [], onSelect, city, focus = 0 }: {
   areas: AreaScore[];
   focus?: number;
@@ -54,11 +70,17 @@ export default function RadarMap({ areas, selectedId, highlightIds = [], onSelec
         attribution="Imagery &copy; Esri, Maxar, Earthstar Geographics"
         maxNativeZoom={17}
       />
-      <TileLayer
-        url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-        attribution="Labels &copy; Esri"
-        opacity={0.7}
-      />
+      {/* Our own Arabic place names; the free reference tile layers only label in English. */}
+      {COUNTRIES.map((c) => (
+        <CircleMarker key={c.name} center={[c.lat, c.lon]} radius={0} interactive={false} pathOptions={{ opacity: 0, fillOpacity: 0 }}>
+          <Tooltip permanent direction="center" className="country-label">{c.name}</Tooltip>
+        </CircleMarker>
+      ))}
+      {CITIES.filter((c) => c.name !== city?.name).map((c) => (
+        <CircleMarker key={c.name} center={[c.lat, c.lon]} radius={2.5} interactive={false} pathOptions={{ color: "#0f1729", weight: 1, fillColor: "#efe7d6", fillOpacity: 0.8 }}>
+          <Tooltip permanent direction="bottom" offset={[0, 2]} className="place-label">{c.name}</Tooltip>
+        </CircleMarker>
+      ))}
       {areas.map((a) => {
         const active = a.id === selectedId || highlightIds.includes(a.id);
         const color = scoreColor(a.score);

@@ -118,7 +118,7 @@ body {
 
 /* Leaflet */
 .leaflet-tile-pane { filter: brightness(.62) saturate(.8) contrast(1.08) hue-rotate(-6deg); }
-.leaflet-container { background: var(--color-ink-2) !important; font-family: var(--font-sans) !important; }
+.leaflet-container { direction: ltr; background: var(--color-ink-2) !important; font-family: var(--font-sans) !important; }
 .leaflet-control-attribution { background: rgba(15,23,41,.75) !important; color: var(--color-muted) !important; font-size: 10px !important; }
 .leaflet-control-attribution a { color: var(--color-rain) !important; }
 .leaflet-bar a { background: var(--color-cloud) !important; color: var(--color-cream) !important; border-color: var(--color-mist) !important; }
@@ -126,3 +126,7 @@ body {
 .leaflet-tooltip-top::before { border-top-color: var(--color-mist) !important; }
 .leaflet-tooltip.city-label { background: transparent !important; border: 0 !important; padding: 0 !important; color: var(--color-cream) !important; font-size: 12px; font-weight: 600; text-shadow: 0 1px 3px #0f1729, 0 0 2px #0f1729; }
 .leaflet-tooltip.city-label::before { display: none; }
+.leaflet-tooltip.place-label, .leaflet-tooltip.country-label { background: transparent !important; border: 0 !important; padding: 0 !important; text-shadow: 0 1px 3px #0f1729, 0 0 2px #0f1729; pointer-events: none; }
+.leaflet-tooltip.place-label { color: rgb(239 231 214 / 0.88) !important; font-size: 12px; }
+.leaflet-tooltip.country-label { color: rgb(239 231 214 / 0.45) !important; font-size: 15px; font-weight: 600; }
+.leaflet-tooltip.place-label::before, .leaflet-tooltip.country-label::before { display: none; }
