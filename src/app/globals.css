@@ -112,6 +112,7 @@ body {
   animation: sweep 2.2s linear infinite;
 }
 .scan::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(circle, transparent 0 31%, rgb(253 230 138 / 0.25) 31.5%, transparent 32.5%, transparent 63%, rgb(253 230 138 / 0.18) 63.5%, transparent 64.5%); }
+.bezel-spin { animation: sweep 24s linear infinite; }
 @keyframes shimmer { 0% { background-position: -400px 0 } 100% { background-position: 400px 0 } }
 .skeleton { background: linear-gradient(90deg, rgba(154,166,189,.06), rgba(154,166,189,.16), rgba(154,166,189,.06)); background-size: 800px 100%; animation: shimmer 1.4s infinite linear; border-radius: 10px; }
 

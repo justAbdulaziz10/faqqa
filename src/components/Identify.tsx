@@ -63,13 +63,15 @@ export function Identify() {
         </div>
 
         <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
+          <div className="relative mx-auto w-full max-w-[17rem] md:max-w-[22rem]">
+          <Bezel spinning={loading} />
           <button
             type="button"
             disabled={loading}
             onClick={() => inputRef.current?.click()}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => { e.preventDefault(); onFile(e.dataTransfer.files?.[0]); }}
-            className="group relative mx-auto grid aspect-square w-full max-w-[17rem] place-items-center md:max-w-[22rem] overflow-hidden rounded-full border border-dashed border-mist bg-ink-2 outline-offset-8 ring-1 ring-mist/50 ring-offset-[10px] ring-offset-ink transition hover:border-cream/50"
+            className="group relative grid aspect-square w-full place-items-center overflow-hidden rounded-full border border-dashed border-mist bg-ink-2 outline-offset-[18px] transition hover:border-cream/50"
             aria-label={image ? "غير الصورة" : "اختر صورة الفقعة"}
           >
             {image
@@ -78,7 +80,7 @@ export function Identify() {
                   <img src={image} alt="صورة الفقعة المرفوعة" className={`absolute inset-0 h-full w-full object-cover transition duration-500 ${loading ? "brightness-75 saturate-50" : ""}`} />
                   {loading && <span className="scan absolute inset-0" aria-hidden />}
                 </>
-              : <span className="flex flex-col items-center gap-3 px-10 text-center">
+              : <span className="flex flex-col items-center gap-3 px-7 text-center">
                   <svg viewBox="0 0 32 32" className="size-9 text-cream transition group-hover:text-bolt" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden>
                     <path d="M3 10h6l3-5h8l3 5h6v17H3z" /><circle cx="16" cy="17" r="5.5" />
                   </svg>
@@ -86,6 +88,7 @@ export function Identify() {
                   <span className="text-sm text-muted">وحدة بس، قريبة، في ضوء النهار</span>
                 </span>}
           </button>
+          </div>
           <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ""; }} />
           <div className="mt-8 flex min-h-12 items-center justify-center gap-5">
             {loading && <p className="flex items-center gap-2 text-sm text-muted"><Spinner /> يفحص الصورة</p>}
@@ -127,6 +130,19 @@ export function Identify() {
   );
 }
 
+/** Radar-scope ticks around the photo lens; turns slowly while a photo is being checked. */
+function Bezel({ spinning }: { spinning: boolean }) {
+  return (
+    <svg viewBox="-110 -110 220 220" className={`pointer-events-none absolute -inset-5 size-[calc(100%+2.5rem)] text-mist ${spinning ? "bezel-spin" : ""}`} aria-hidden>
+      {Array.from({ length: 72 }, (_, i) => {
+        const major = i % 6 === 0;
+        return <line key={i} x1="0" y1={-108} x2="0" y2={major ? -100 : -104} stroke="currentColor" strokeWidth={major ? 1.4 : 0.8} opacity={major ? 0.9 : 0.5} transform={`rotate(${i * 5})`} />;
+      })}
+      <path d="M0 -108 L-3 -114 L3 -114 Z" className="fill-bolt" />
+    </svg>
+  );
+}
+
 function SpecimenPlate({ active }: { active: string | null }) {
   return (
     <figure className="self-start rounded-[22px] bg-sand px-4 pb-6 pt-8 text-ink lg:col-start-1 lg:row-start-2 md:px-8">
@@ -146,8 +162,8 @@ function SpecimenPlate({ active }: { active: string | null }) {
                 {t.name}
                 {on && <span className="mx-auto mt-1 block w-fit rounded-full bg-ink px-2 py-0.5 font-sans text-[11px] font-semibold text-bolt">فقعتك</span>}
               </dt>
-              <dd className="mt-1 text-[12px] leading-5 text-ink/70 md:text-[13px] md:leading-6">{t.desc}</dd>
-              <dd className="num mt-1 text-[12px] font-semibold text-ink/80 md:text-[13px]">{t.price}</dd>
+              <dd className="mt-1 hidden text-[13px] leading-6 text-ink/70 sm:block">{t.desc}</dd>
+              <dd className="num mt-1 text-[12px] font-semibold leading-5 text-ink/80 md:text-[13px]">{t.price}</dd>
             </div>
           );
         })}
