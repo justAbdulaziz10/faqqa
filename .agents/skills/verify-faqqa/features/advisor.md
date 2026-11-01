@@ -6,6 +6,9 @@ The advisor answers a user's Arabic question about where to hunt truffles. It ra
 
 - `advisor-index`: `GET /api/advisor` lists the area count and origin city IDs.
 - `advisor-validate`: rejects an empty question, a question over 600 characters, or a missing body, without calling Llama.
+- `advisor-guard`: prompt-injection attempts (English or Arabic) and bare greetings get a friendly canned `kind:"reply"` without calling Llama.
+- `advisor-reply`: off-topic, unclear, or general truffle questions (cooking, prices, storage) come back as `kind:"reply"` with no recommendations. **Needs the real Llama.**
+- `advisor-fallback`: if Llama is unreachable or returns bad JSON twice, the route answers from the rain data with `fallback:true` instead of an error. **Needs Open-Meteo.**
 - `advisor-answer`: a valid question returns headline, summary, recommendations with area coordinates and distance, safety tips, and confidence. **Unproven offline.**
 
 ## How to get to it (user POV)

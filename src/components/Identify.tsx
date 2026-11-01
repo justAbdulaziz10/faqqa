@@ -91,11 +91,12 @@ export function Identify() {
                 <div className="flex items-end justify-between gap-3">
                   <div>
                     <p className="text-sm text-muted">{result.isTruffle ? "النوع" : "النتيجة"}</p>
-                    <h3 className="mt-1 text-3xl font-semibold">{result.type}</h3>
+                    <h3 className="mt-1 font-display text-3xl font-bold">{!result.isTruffle ? "ما هي فقعة" : result.type === "غير محدد" ? "ما قدرنا نحدد نوعها" : result.type}</h3>
                   </div>
                   {result.isTruffle && <p className="text-end text-sm text-muted">متأكد بنسبة<span className="num block text-2xl font-semibold text-cream">{Math.round(result.confidence)}٪</span></p>}
                 </div>
                 <p className="mt-4 leading-8 text-cream/90">{result.description}</p>
+                {!result.isTruffle && <p className="mt-2 text-sm leading-7 text-muted">جرب صورة قريبة لفقعة وحدة، في ضوء النهار، وخلفيتها سادة.</p>}
                 {result.isTruffle && (
                   <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-4 border-y border-mist py-4 text-sm">
                     <div><dt className="text-muted">الجودة</dt><dd className="mt-1 font-medium">{result.quality}</dd></div>
@@ -131,5 +132,5 @@ const TYPES = [
   { name: "زبيدي", desc: "أبيض كريمي وحجمه كبير. الأغلى والأطيب.", swatch: "radial-gradient(circle at 35% 30%, #fbf4e4, #d9c6a2 70%, #a8916a)", rotate: "-8deg" },
   { name: "خلاسي", desc: "قشرته حمراء مائلة للبني. سعره متوسط.", swatch: "radial-gradient(circle at 35% 30%, #e7b9a0, #a8644a 70%, #6e3b2a)", rotate: "20deg" },
   { name: "جبي", desc: "داكن وصغير. الأرخص بينهم.", swatch: "radial-gradient(circle at 35% 30%, #8a7564, #4a382c 70%, #241a14)", rotate: "75deg" },
-  { name: "هبر", desc: "فاتح وأصغر من الزبيدي، وسعره أقل منه.", swatch: "radial-gradient(circle at 35% 30%, #f3e9d2, #c9b48d 70%, #8f7a55)", rotate: "140deg" },
+  { name: "هبر", desc: "صغير وأبيض، ويطلع بدري.", swatch: "radial-gradient(circle at 35% 30%, #f3e9d2, #c9b48d 70%, #8f7a55)", rotate: "140deg" },
 ];

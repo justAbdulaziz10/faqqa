@@ -8,7 +8,7 @@ import { CitySelect, useCity } from "./CityProvider";
 type Rec = AdvisorResult["recommendations"][number] & {
   area: { id: string; name: string; region: string; lat: number; lon: number; score: number; label: string; distanceKm: number | null };
 };
-type Result = Omit<AdvisorResult, "recommendations"> & { recommendations: Rec[] };
+type Result = Omit<AdvisorResult, "recommendations"> & { recommendations: Rec[]; fallback?: boolean };
 
 const EXAMPLES = [
   "وين أقرب مكان فيه أمل هالويكند؟",
@@ -33,13 +33,23 @@ export function Advisor({ context = [] }: { context?: AdvisorContext }) {
       const res = await fetch("/api/advisor", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: q, originId: city.id }) });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) throw new Error(data?.error?.message ?? "ما وصل رد. جرب مرة ثانية.");
-      setResult(data.result);
+      setResult({ ...data.result, fallback: !!data.fallback });
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setLoading(false);
     }
   }
+
+  const examples = (
+    <ul className="mt-4 flex flex-wrap gap-2" aria-label="أمثلة">
+      {EXAMPLES.map((ex) => (
+        <li key={ex}>
+          <button type="button" onClick={() => { setQuestion(ex); submit(undefined, ex); }} className="rounded-full border border-mist px-3.5 py-1.5 text-[13px] text-muted transition hover:border-cream/50 hover:text-cream">{ex}</button>
+        </li>
+      ))}
+    </ul>
+  );
 
   return (
     <section id="advisor" className="mx-auto max-w-7xl scroll-mt-20 px-5 mt-20 md:mt-28" aria-labelledby="advisor-title">
@@ -69,21 +79,13 @@ export function Advisor({ context = [] }: { context?: AdvisorContext }) {
         </div>
       </form>
 
-      {!result && !loading && (
-        <ul className="mt-4 flex flex-wrap gap-2" aria-label="أمثلة">
-          {EXAMPLES.map((ex) => (
-            <li key={ex}>
-              <button type="button" onClick={() => { setQuestion(ex); submit(undefined, ex); }} className="rounded-full border border-mist px-3.5 py-1.5 text-[13px] text-muted transition hover:border-cream/50 hover:text-cream">{ex}</button>
-            </li>
-          ))}
-        </ul>
-      )}
+      {!result && !loading && examples}
 
       {error && <p id="advisor-error" role="alert" className="mt-4 text-sm text-alert">{error}</p>}
 
       <div aria-live="polite" aria-busy={loading}>
         {loading && <Loading city={city.name} />}
-        {!loading && result && <Plan result={result} />}
+        {!loading && result && (result.kind === "reply" ? <><Reply result={result} />{examples}</> : <Plan result={result} />)}
       </div>
       </div>
 
@@ -97,7 +99,7 @@ export function Advisor({ context = [] }: { context?: AdvisorContext }) {
                   <span className="font-medium">{a.name}</span>
                   <span className="text-sm font-semibold" style={{ color: scoreColor(a.score) }}>{scoreLabel(a.score)}</span>
                 </p>
-                <p className="num text-[13px] text-muted">{a.region}، {a.wasmRain} ملم{a.thunderDays > 0 ? `، رعد ${a.thunderDays} ${a.thunderDays === 1 ? "يوم" : "أيام"}` : ""}</p>
+                <p className="num text-[13px] text-muted">{a.region}، {a.wasmRain} ملم{a.thunderDays === 1 ? "، يوم رعد" : a.thunderDays === 2 ? "، يومين رعد" : a.thunderDays > 2 ? `، ${a.thunderDays} أيام رعد` : ""}</p>
               </li>
             ))}
           </ol>
@@ -108,10 +110,26 @@ export function Advisor({ context = [] }: { context?: AdvisorContext }) {
   );
 }
 
+function Reply({ result }: { result: Result }) {
+  return (
+    <article className="mt-8 flex gap-4">
+      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-cloud" aria-hidden>
+        <svg viewBox="0 0 24 24" className="size-5 text-bolt" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z" /></svg>
+      </span>
+      <div className="min-w-0 rounded-2xl rounded-ss-sm bg-ink-2 px-5 py-4 ring-1 ring-mist/70">
+        <h3 className="font-semibold leading-8">{result.headline}</h3>
+        <p className="mt-1 leading-8 text-cream/85">{result.summary}</p>
+      </div>
+    </article>
+  );
+}
+
 function Plan({ result }: { result: Result }) {
   return (
     <article className="mt-10">
-      <p className="text-sm text-muted">ثقة الرد: {result.confidence}</p>
+      {result.fallback
+        ? <p className="text-sm text-muted">Llama مشغول الحين، فهذا رد سريع من بيانات المطر مباشرة.</p>
+        : <p className="text-sm text-muted">ثقة الرد: {result.confidence}</p>}
       <h3 className="mt-2 text-2xl font-semibold leading-snug md:text-3xl">{result.headline}</h3>
       <p className="mt-3 text-lg leading-9 text-cream/90">{result.summary}</p>
 
@@ -135,7 +153,7 @@ function Plan({ result }: { result: Result }) {
         ))}
       </ol>
 
-      <p className="mt-6 leading-8"><span className="text-muted">عن الموسم: </span>{result.seasonOutlook}</p>
+      {result.seasonOutlook && <p className="mt-6 leading-8"><span className="text-muted">عن الموسم: </span>{result.seasonOutlook}</p>}
       <ul className="mt-4 list-disc space-y-1 ps-5 text-sm leading-7 text-muted marker:text-dune">
         {result.safety.map((s) => <li key={s}>{s}</li>)}
       </ul>

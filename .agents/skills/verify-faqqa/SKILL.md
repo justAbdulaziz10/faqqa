@@ -50,6 +50,7 @@ $V drive all            # every offline drive
 |---|---|---|
 | `home` | `GET /` | 200, `<html lang="ar" dir="rtl">`, `<title>` contains `فقاع`, skip link to `#main` |
 | `areas-index` | `GET /api/advisor` | `ok:true`, `areas` = 24, 13 origins including `riyadh` |
+| `advisor-guard` | `POST /api/advisor` with an English and an Arabic prompt-injection attempt and a greeting ("هلا") | each returns 200 with `kind:"reply"` and the friendly canned headline, no recommendations, and Llama is **not** called |
 | `advisor-validation` | `POST /api/advisor` with an empty question, a 601-character question, and no body | each returns 400 `invalid_input` with the exact Arabic message, and Llama is **not** called |
 | `identify` | `POST /api/identify` with a 1×1 PNG data URL and a note | 200, `model` `Llama 4 Scout (Vision)`, `attempts` 1, `type` `زبيدي`, price 300–600. The stub saw exactly one call with `Bearer` auth, the vision model id, and **the same image the user sent** |
 | `identify-retry` | `POST /api/identify` with the note `STUB_BAD_FIRST` (the stub answers invalid JSON first) | 200, `attempts` 2, two stub calls, the second carrying the validation feedback |

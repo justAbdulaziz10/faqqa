@@ -1,9 +1,12 @@
 import { z } from "zod";
 
 // What Llama must return for the trip advisor.
+// kind "plan": where/when to go, with 1–3 areas. kind "reply": anything else (greetings,
+// general truffle questions, off-topic, attempts to change the assistant's role).
 export const AdvisorSchema = z.object({
-  headline: z.string().min(3).max(140),
-  summary: z.string().min(10).max(900),
+  kind: z.enum(["plan", "reply"]),
+  headline: z.string().min(2).max(140),
+  summary: z.string().min(2).max(900),
   recommendations: z
     .array(
       z.object({
@@ -13,10 +16,9 @@ export const AdvisorSchema = z.object({
         tip: z.string().min(2).max(300),
       }),
     )
-    .min(1)
     .max(3),
-  seasonOutlook: z.string().min(5).max(500),
-  safety: z.array(z.string().min(3).max(220)).min(1).max(4),
+  seasonOutlook: z.string().max(500),
+  safety: z.array(z.string().min(3).max(220)).max(4),
   confidence: z.enum(["منخفضة", "متوسطة", "عالية"]),
 });
 export type Advisor = z.infer<typeof AdvisorSchema>;
