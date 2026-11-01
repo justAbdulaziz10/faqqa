@@ -13,7 +13,7 @@ type Result = Omit<AdvisorResult, "recommendations"> & { recommendations: Rec[] 
 const EXAMPLES = [
   "طالعين الخميس العصر ونرجع الجمعة، وين أقرب مكان فيه أمل؟",
   "متى يبدأ يطلع الفقع هالسنة؟",
-  "أبي أروح للزبيدي، وش أفضل منطقة الحين؟",
+  "أبي زبيدي، وش أفضل منطقة الحين؟",
 ];
 
 export function Advisor() {
@@ -23,14 +23,14 @@ export function Advisor() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
 
-  async function submit(e?: React.FormEvent) {
+  async function submit(e?: React.FormEvent, q = question) {
     e?.preventDefault();
-    if (!question.trim()) { setError("اكتب سؤالك أولاً 👆"); return; }
+    if (!q.trim()) { setError("اكتب سؤالك أول، أو اختر واحد من الأمثلة."); return; }
     setLoading(true); setError(null); setResult(null);
     try {
-      const res = await fetch("/api/advisor", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question, originId }) });
+      const res = await fetch("/api/advisor", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: q, originId }) });
       const data = await res.json().catch(() => null);
-      if (!res.ok || !data?.ok) throw new Error(data?.error?.message ?? "تعذر الحصول على رد. حاول مرة ثانية.");
+      if (!res.ok || !data?.ok) throw new Error(data?.error?.message ?? "ما وصلنا رد. جرّب مرة ثانية.");
       setResult(data.result);
     } catch (err) {
       setError((err as Error).message);
@@ -40,103 +40,93 @@ export function Advisor() {
   }
 
   return (
-    <section id="advisor" className="mx-auto max-w-6xl scroll-mt-20 px-4 pt-24">
-      <header className="mb-6">
-        <p className="text-sm text-ember">مدعوم بـ Meta Llama 4</p>
-        <h2 className="font-display text-3xl md:text-4xl">اسأل فقّاع</h2>
-        <p className="mt-2 max-w-2xl text-sand-dim">اكتب سؤالك بالعامية، و Llama يقرأ بيانات المناخ الحية لكل المناطق ويعطيك خطة طلعة مبنية على الأرقام.</p>
-      </header>
+    <section id="advisor" className="mx-auto max-w-3xl scroll-mt-28 px-5 pt-28" aria-labelledby="advisor-title">
+      <h2 id="advisor-title" className="font-display text-4xl md:text-5xl">اسأل فقّاع</h2>
+      <p className="mt-3 leading-8 text-muted">اكتب سؤالك بالعامية. Meta Llama 4 يقرأ أرقام اليوم لكل المناطق ويرد عليك بخطة طلعة.</p>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
-        <form onSubmit={submit} className="card flex flex-col gap-4 p-5" noValidate>
-          <label className="text-sm font-medium" htmlFor="origin">مدينتك</label>
-          <select id="origin" value={originId} onChange={(e) => setOriginId(e.target.value)} className="rounded-xl border border-sand/15 bg-night px-3 py-3 outline-none focus:border-ember">
-            {ORIGINS.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
-          </select>
-          <label className="text-sm font-medium" htmlFor="q">سؤالك</label>
-          <textarea
-            id="q" value={question} onChange={(e) => setQuestion(e.target.value)} maxLength={600} rows={5}
-            placeholder="مثال: طالعين الويكند من الرياض، وين احتمال الفقع أعلى؟"
-            aria-invalid={!!error && !question.trim()}
-            className="resize-none rounded-xl border border-sand/15 bg-night px-3 py-3 leading-7 outline-none placeholder:text-sand-dim/60 focus:border-ember"
-            onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit(); }}
-          />
-          <div className="flex flex-wrap gap-2">
-            {EXAMPLES.map((ex) => (
-              <button type="button" key={ex} onClick={() => setQuestion(ex)} className="rounded-full border border-sand/15 px-3 py-1.5 text-xs text-sand-dim hover:border-ember hover:text-sand">{ex}</button>
-            ))}
-          </div>
-          <button type="submit" disabled={loading} className="mt-1 flex items-center justify-center gap-2 rounded-xl bg-ember px-5 py-3 font-semibold text-night transition hover:bg-dune disabled:cursor-wait disabled:opacity-70">
-            {loading ? <><Spinner /> Llama يحلل البيانات…</> : "حلّل واقترح لي ✨"}
+      <form onSubmit={submit} className="field mt-8 p-2" noValidate>
+        <label htmlFor="q" className="sr-only">سؤالك</label>
+        <textarea
+          id="q" value={question} onChange={(e) => setQuestion(e.target.value)} maxLength={600} rows={3}
+          placeholder="مثلاً: طالعين الويكند، وين احتمال الفقع أعلى؟"
+          aria-invalid={!!error && !question.trim()}
+          aria-describedby={error ? "advisor-error" : undefined}
+          className="block w-full resize-none bg-transparent px-3 py-2 text-lg leading-8 outline-none placeholder:text-muted/70"
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); submit(); } }}
+        />
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-mist/70 px-2 pt-2">
+          <label className="flex items-center gap-2 text-sm text-muted">
+            طالع من
+            <select value={originId} onChange={(e) => setOriginId(e.target.value)} className="rounded-lg bg-cloud px-2 py-1.5 text-cream outline-none focus-visible:ring-2 focus-visible:ring-bolt">
+              {ORIGINS.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+            </select>
+          </label>
+          <button type="submit" disabled={loading} className="btn-bolt flex items-center gap-2 px-5 py-2.5 text-sm">
+            {loading ? <><Spinner /> يحلل الأرقام</> : "اسأل"}
           </button>
-          {error && <p role="alert" className="rounded-xl border border-rust/40 bg-rust/10 p-3 text-sm text-[#f3b7a6]">{error}</p>}
-        </form>
-
-        <div className="card min-h-[340px] p-5" aria-live="polite" aria-busy={loading}>
-          {loading && <Loading />}
-          {!loading && !result && (
-            <div className="flex h-full flex-col items-center justify-center gap-3 py-10 text-center text-sand-dim">
-              <span className="text-5xl" aria-hidden>🍄</span>
-              <p>هنا بتظهر خطة طلعتك: أفضل المناطق، والتوقيت، ونصائح السلامة.</p>
-            </div>
-          )}
-          {!loading && result && <AdvisorView result={result} />}
         </div>
+      </form>
+
+      {!result && !loading && (
+        <ul className="mt-4 flex flex-wrap gap-2" aria-label="أمثلة">
+          {EXAMPLES.map((ex) => (
+            <li key={ex}>
+              <button type="button" onClick={() => { setQuestion(ex); submit(undefined, ex); }} className="rounded-full border border-mist px-3.5 py-1.5 text-[13px] text-muted transition hover:border-cream/50 hover:text-cream">{ex}</button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {error && <p id="advisor-error" role="alert" className="mt-4 text-sm text-alert">{error}</p>}
+
+      <div aria-live="polite" aria-busy={loading}>
+        {loading && <Loading />}
+        {!loading && result && <Plan result={result} />}
       </div>
     </section>
   );
 }
 
-function AdvisorView({ result }: { result: Result }) {
+function Plan({ result }: { result: Result }) {
   return (
-    <div className="flex flex-col gap-5">
-      <div>
-        <div className="mb-2 flex items-center gap-2 text-xs text-sand-dim">
-          <span className="rounded-full bg-sand/10 px-2 py-0.5">ثقة {result.confidence}</span>
-          <span>Llama 4 Scout</span>
-        </div>
-        <h3 className="font-display text-2xl text-ember">{result.headline}</h3>
-        <p className="mt-2 leading-8">{result.summary}</p>
-      </div>
-      <ol className="grid gap-3">
-        {result.recommendations.map((r, i) => (
-          <li key={r.areaId} className="rounded-2xl border border-sand/10 bg-night/50 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <span className="grid size-8 place-items-center rounded-full bg-ember/15 font-display text-ember">{i + 1}</span>
-                <div>
-                  <h4 className="font-semibold">{r.area.name}</h4>
-                  <p className="text-xs text-sand-dim">{r.area.region}{r.area.distanceKm != null ? ` · تقريباً ${r.area.distanceKm} كم بالسيارة` : ""}</p>
-                </div>
-              </div>
-              <span className="font-display text-2xl" style={{ color: scoreColor(r.area.score) }}>{r.area.score}</span>
+    <article className="mt-10">
+      <p className="text-sm text-muted">ثقة Llama: {result.confidence}</p>
+      <h3 className="mt-2 text-2xl font-semibold leading-snug md:text-3xl">{result.headline}</h3>
+      <p className="mt-3 text-lg leading-9 text-cream/90">{result.summary}</p>
+
+      <ol className="mt-8 border-t border-mist">
+        {result.recommendations.map((r) => (
+          <li key={r.areaId} className="grid gap-3 border-b border-mist py-6 md:grid-cols-[1fr_auto]">
+            <div>
+              <h4 className="text-xl font-semibold">{r.area.name}<span className="ms-2 text-sm font-normal text-muted">{r.area.region}{r.area.distanceKm != null ? `، تقريباً ${r.area.distanceKm} كم` : ""}</span></h4>
+              <p className="mt-2 leading-8 text-cream/90">{r.why}</p>
+              <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                <div><dt className="text-muted">متى</dt><dd className="leading-7">{r.bestTime}</dd></div>
+                <div><dt className="text-muted">نصيحة</dt><dd className="leading-7">{r.tip}</dd></div>
+              </dl>
+              <a href={`https://www.google.com/maps/search/?api=1&query=${r.area.lat},${r.area.lon}`} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block text-sm text-rain underline-offset-4 hover:underline">افتح الموقع التقريبي في الخرائط</a>
             </div>
-            <p className="mt-3 text-sm leading-7">{r.why}</p>
-            <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-              <p className="rounded-lg bg-sand/5 p-2">⏰ {r.bestTime}</p>
-              <p className="rounded-lg bg-sand/5 p-2">💡 {r.tip}</p>
-            </div>
-            <a href={`https://www.google.com/maps/search/?api=1&query=${r.area.lat},${r.area.lon}`} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block text-xs text-dune underline-offset-4 hover:underline">افتح الموقع التقريبي في الخرائط ↗</a>
+            <div className="num text-4xl font-semibold md:text-end" style={{ color: scoreColor(r.area.score) }}>{r.area.score}<span className="ms-1 text-sm font-normal text-muted">/100</span></div>
           </li>
         ))}
       </ol>
-      <p className="rounded-xl bg-moss/10 p-3 text-sm leading-7">🌦️ {result.seasonOutlook}</p>
-      <ul className="grid gap-1 text-sm text-sand-dim">
-        {result.safety.map((s) => <li key={s}>⚠️ {s}</li>)}
+
+      <p className="mt-6 leading-8"><span className="text-muted">الموسم: </span>{result.seasonOutlook}</p>
+      <ul className="mt-4 list-disc space-y-1 ps-5 text-sm leading-7 text-muted marker:text-dune">
+        {result.safety.map((s) => <li key={s}>{s}</li>)}
       </ul>
-      <p className="text-[11px] text-sand-dim/80">تقدير تقريبي من نموذج تجريبي وليس دقيقاً ١٠٠٪. تأكد دائماً من حالة الطقس والطرق قبل الطلعة.</p>
-    </div>
+      <p className="mt-6 text-xs text-muted">رد مولّد بالذكاء الاصطناعي من أرقام تقديرية، وليس دقيقاً 100٪. تأكد من الطقس والطريق قبل تطلع.</p>
+    </article>
   );
 }
 
 function Loading() {
   return (
-    <div className="flex flex-col gap-4">
-      <p className="flex items-center gap-2 text-sm text-ember"><Spinner /> نجمع أمطار الوسم والرعد ورطوبة التربة… و Llama يفكر</p>
+    <div className="mt-10 flex flex-col gap-3">
+      <p className="text-sm text-muted">Llama يقرأ مطر كل منطقة ويوزن المسافة…</p>
       <div className="skeleton h-8 w-2/3" />
-      <div className="skeleton h-16 w-full" />
-      <div className="skeleton h-28 w-full" />
-      <div className="skeleton h-28 w-full" />
+      <div className="skeleton h-20 w-full" />
+      <div className="skeleton h-32 w-full" />
     </div>
   );
 }

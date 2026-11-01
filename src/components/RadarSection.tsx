@@ -2,91 +2,118 @@
 
 import dynamic from "next/dynamic";
 import { useState } from "react";
-import type { Radar } from "@/lib/radar";
-import { arDate, scoreColor } from "@/lib/format";
+import type { Radar, AreaScore } from "@/lib/radar";
+import { arDate, scoreColor, SCALE } from "@/lib/format";
 import { RainBars } from "./RainBars";
 
-const RadarMap = dynamic(() => import("./RadarMap"), { ssr: false, loading: () => <div className="skeleton h-full w-full" /> });
+const RadarMap = dynamic(() => import("./RadarMap"), { ssr: false, loading: () => <div className="skeleton h-full w-full rounded-none" /> });
 
 export function RadarSection({ radar }: { radar: Radar }) {
   const [selectedId, setSelectedId] = useState<string>(radar.areas[0]?.id ?? "");
+  const [showAll, setShowAll] = useState(false);
   const selected = radar.areas.find((a) => a.id === selectedId) ?? radar.areas[0];
+  const list = showAll ? radar.areas : radar.areas.slice(0, 8);
+  const maxRain = Math.max(10, ...radar.areas.map((a) => a.wasmRain));
+  const updated = new Date(radar.generatedAt).toLocaleString("ar-SA", { timeZone: "Asia/Riyadh", day: "numeric", month: "long", hour: "numeric", minute: "2-digit" });
 
   return (
-    <section id="radar" className="mx-auto max-w-6xl scroll-mt-20 px-4 pt-20">
-      <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <section id="radar" className="scroll-mt-28 pt-24" aria-labelledby="radar-title">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-end justify-between gap-4 px-5">
         <div>
-          <p className="text-sm text-ember">الرادار الحي</p>
-          <h2 className="font-display text-3xl md:text-4xl">خريطة احتمال الفقع</h2>
-          <p className="mt-2 max-w-2xl text-sand-dim">
-            كل دائرة منطقة فقع معروفة. اللون والحجم = مؤشر الاحتمال من ١٠٠ حسب أمطار الوسم والرعد ورطوبة التربة والحرارة. اضغط أي منطقة للتفاصيل.
-          </p>
+          <h2 id="radar-title" className="font-display text-4xl md:text-5xl">وين شربت الأرض؟</h2>
+          <p className="mt-3 max-w-2xl leading-8 text-muted">كل دائرة منطقة فقع معروفة. لونها وحجمها من مؤشر الاحتمال. اضغط أي منطقة تشوف مطرها يوم بيوم.</p>
         </div>
-        <p className="text-xs text-sand-dim">آخر تحديث: {new Date(radar.generatedAt).toLocaleString("ar-SA", { timeZone: "Asia/Riyadh", dateStyle: "medium", timeStyle: "short" })}</p>
-      </header>
+        <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-muted" aria-label="مفتاح الألوان">
+          {[...SCALE].reverse().map((s) => (
+            <li key={s.label} className="flex items-center gap-1.5"><i className="inline-block size-2.5 rounded-full" style={{ background: s.color }} />{s.label}</li>
+          ))}
+        </ul>
+      </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-        <div className="card relative h-[420px] overflow-hidden md:h-[540px]">
+      <div className="relative mx-auto mt-8 max-w-7xl md:px-5">
+        <div className="relative h-[62svh] min-h-[380px] overflow-hidden border-y border-mist md:h-[640px] md:rounded-[18px] md:border">
           <RadarMap areas={radar.areas} selectedId={selectedId} onSelect={setSelectedId} />
-          <div className="pointer-events-none absolute bottom-3 right-3 z-[500] flex gap-2 rounded-full bg-night/85 px-3 py-1.5 text-[11px]">
-            {[["ممتاز", 80], ["واعد", 50], ["ضعيف", 30], ["شبه معدوم", 0]].map(([l, s]) => (
-              <span key={l} className="flex items-center gap-1"><i className="inline-block size-2.5 rounded-full" style={{ background: scoreColor(s as number) }} />{l}</span>
-            ))}
-          </div>
         </div>
-
         {selected && (
-          <article className="card flex flex-col gap-5 p-5" aria-live="polite">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs text-sand-dim">{selected.region}</p>
-                <h3 className="font-display text-2xl">{selected.name}</h3>
-              </div>
-              <div className="text-center">
-                <div className="font-display text-4xl" style={{ color: scoreColor(selected.score) }}>{selected.score}</div>
-                <div className="text-xs text-sand-dim">{selected.label}</div>
-              </div>
-            </div>
-            <dl className="grid grid-cols-2 gap-3 text-sm">
-              <Stat label="أمطار الوسم" value={`${selected.wasmRain} ملم`} />
-              <Stat label="أيام الرعد" value={`${selected.thunderDays}`} />
-              <Stat label="رطوبة التربة" value={selected.soilMoisture != null ? `${Math.round(selected.soilMoisture * 100)}٪` : "—"} />
-              <Stat label="متوسط الحرارة" value={selected.meanTemp != null ? `${selected.meanTemp}°` : "—"} />
-              <Stat label="مطر متوقع (٧ أيام)" value={`${selected.forecastRain} ملم`} />
-              <Stat label="أيام ممطرة" value={`${selected.rainDays}`} />
-            </dl>
-            <RainBars daily={selected.daily} />
-            <p className="rounded-xl bg-night/60 p-3 text-sm leading-7">
-              {selected.emergenceWindow
-                ? <>🍄 الطلوع المتوقع تقريباً بين <b className="text-ember">{arDate(selected.emergenceWindow.from)}</b> و <b className="text-ember">{arDate(selected.emergenceWindow.to)}</b> (٦٠–٧٥ يوماً بعد أول مطر وسم فعّال).</>
-                : <>⏳ ما نزل مطر وسم فعّال (١٠ ملم) على المنطقة للحين، فالطلوع غير متوقع قريباً. تابع الرادار بعد أي منخفض.</>}
-            </p>
-          </article>
+          <div className="px-5 md:absolute md:bottom-5 md:left-10 md:top-5 md:z-[500] md:w-[380px] md:px-0">
+            <AreaPanel area={selected} />
+          </div>
         )}
       </div>
 
-      <ol className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-        {radar.areas.slice(0, 12).map((a, i) => (
-          <li key={a.id}>
-            <button
-              onClick={() => setSelectedId(a.id)}
-              className={`flex w-full items-center justify-between gap-2 rounded-xl border px-3 py-2 text-sm transition ${a.id === selectedId ? "border-ember bg-ember/10" : "border-sand/10 hover:bg-sand/5"}`}
-            >
-              <span className="truncate"><span className="text-sand-dim">{i + 1}.</span> {a.name}</span>
-              <span className="font-semibold" style={{ color: scoreColor(a.score) }}>{a.score}</span>
-            </button>
-          </li>
-        ))}
-      </ol>
+      <div className="mx-auto mt-14 max-w-7xl px-5">
+        <div className="flex items-baseline justify-between gap-4">
+          <h3 className="text-xl font-semibold">الترتيب الحين</h3>
+          <p className="text-[13px] text-muted">تحديث {updated}</p>
+        </div>
+        <ol className="mt-4 divide-y divide-mist/70 border-y border-mist/70">
+          {list.map((a, i) => (
+            <li key={a.id}>
+              <button
+                onClick={() => { setSelectedId(a.id); document.getElementById("radar")?.scrollIntoView({ behavior: "smooth" }); }}
+                aria-current={a.id === selectedId}
+                className="grid w-full grid-cols-[2rem_1fr_3rem] items-center gap-3 py-3 text-start transition hover:bg-ink-2 md:grid-cols-[2.5rem_14rem_1fr_6rem_3.5rem] md:gap-5 md:px-2"
+              >
+                <span className="num text-sm text-muted">{i + 1}</span>
+                <span>
+                  <span className="font-medium">{a.name}</span>
+                  <span className="ms-2 text-[13px] text-muted">{a.region}</span>
+                </span>
+                <span className="hidden h-1.5 overflow-hidden rounded-full bg-mist/60 md:block" aria-hidden>
+                  <span className="block h-full rounded-full bg-rain" style={{ width: `${(a.wasmRain / maxRain) * 100}%` }} />
+                </span>
+                <span className="num hidden text-sm text-muted md:block">{a.wasmRain} ملم</span>
+                <span className="num text-end text-lg font-semibold" style={{ color: scoreColor(a.score) }}>{a.score}</span>
+              </button>
+            </li>
+          ))}
+        </ol>
+        {radar.areas.length > 8 && (
+          <button onClick={() => setShowAll((v) => !v)} className="mt-4 text-sm text-cream underline underline-offset-4 hover:text-bolt">
+            {showAll ? "اعرض أول 8 فقط" : `اعرض كل المناطق (${radar.areas.length})`}
+          </button>
+        )}
+      </div>
     </section>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function AreaPanel({ area }: { area: AreaScore }) {
   return (
-    <div className="rounded-xl bg-night/50 p-3">
-      <dt className="text-xs text-sand-dim">{label}</dt>
-      <dd className="mt-1 font-semibold">{value}</dd>
+    <article className="panel mt-4 flex h-full flex-col gap-4 overflow-y-auto bg-ink-2/95 p-5 backdrop-blur md:mt-0" aria-live="polite">
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-2xl font-semibold">{area.name}</h3>
+          <p className="text-sm text-muted">{area.region}</p>
+        </div>
+        <div className="text-end">
+          <div className="num text-4xl font-semibold leading-none" style={{ color: scoreColor(area.score) }}>{area.score}</div>
+          <div className="mt-1 text-xs text-muted">{area.label} من 100</div>
+        </div>
+      </header>
+      <dl className="grid grid-cols-3 gap-x-3 gap-y-4 border-y border-mist py-4 text-sm">
+        <Stat label="مطر الوسم" value={`${area.wasmRain}`} unit="ملم" />
+        <Stat label="أيام رعد" value={`${area.thunderDays}`} />
+        <Stat label="رطوبة التربة" value={area.soilMoisture != null ? `${Math.round(area.soilMoisture * 100)}` : "—"} unit={area.soilMoisture != null ? "٪" : undefined} />
+        <Stat label="الحرارة" value={area.meanTemp != null ? `${area.meanTemp}` : "—"} unit={area.meanTemp != null ? "°" : undefined} />
+        <Stat label="مطر الأسبوع الجاي" value={`${area.forecastRain}`} unit="ملم" />
+        <Stat label="أيام ممطرة" value={`${area.rainDays}`} />
+      </dl>
+      <RainBars daily={area.daily} />
+      <p className="text-sm leading-7 text-cream/90">
+        {area.emergenceWindow
+          ? <>الطلوع المتوقع بين <b className="text-dune">{arDate(area.emergenceWindow.from)}</b> و<b className="text-dune">{arDate(area.emergenceWindow.to)}</b>، بعد 60 إلى 75 يوم من أول مطر فعّال.</>
+          : <>ما وصلها مطر فعّال (10 ملم) للحين، فما نتوقع طلوع قريب. تابعها بعد أي منخفض.</>}
+      </p>
+    </article>
+  );
+}
+
+function Stat({ label, value, unit }: { label: string; value: string; unit?: string }) {
+  return (
+    <div>
+      <dt className="text-xs text-muted">{label}</dt>
+      <dd className="num mt-1 text-lg font-medium">{value}{unit ? <span className="ms-0.5 text-xs text-muted">{unit}</span> : null}</dd>
     </div>
   );
 }

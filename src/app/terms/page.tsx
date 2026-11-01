@@ -46,11 +46,11 @@ export default function TermsPage() {
       </Block>
 
       <Block title="٧. الملكية والمصادر">
-        <p>الكود مفتوح المصدر على <a className="text-dune underline" href={SITE.repo} target="_blank" rel="noopener noreferrer">GitHub</a>. بيانات الطقس من Open-Meteo (CC BY 4.0)، والخرائط من © OpenStreetMap و© CARTO، والذكاء الاصطناعي Meta Llama 4 خاضع لرخصة Llama من Meta.</p>
+        <p>الكود مفتوح المصدر على <a className="text-rain underline" href={SITE.repo} target="_blank" rel="noopener noreferrer">GitHub</a>. بيانات الطقس من Open-Meteo (CC BY 4.0)، وصور الأقمار الصناعية والخرائط من © Esri وMaxar وEarthstar Geographics، والذكاء الاصطناعي Meta Llama 4 خاضع لرخصة Llama من Meta.</p>
       </Block>
 
       <Block title="٨. التواصل">
-        <p>للملاحظات أو البلاغات افتح Issue في <a className="text-dune underline" href={SITE.repo + "/issues"} target="_blank" rel="noopener noreferrer">مستودع المشروع</a>.</p>
+        <p>للملاحظات أو البلاغات افتح Issue في <a className="text-rain underline" href={SITE.repo + "/issues"} target="_blank" rel="noopener noreferrer">مستودع المشروع</a>.</p>
       </Block>
     </PageShell>
   );

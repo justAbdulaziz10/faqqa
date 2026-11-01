@@ -26,12 +26,12 @@ export function Identify() {
     setError(null); setResult(null);
     if (!file) return;
     if (!/^image\/(png|jpe?g|webp)$/.test(file.type)) { setError("الصيغة غير مدعومة. استخدم صورة JPG أو PNG أو WEBP."); return; }
-    if (file.size > 15 * 1024 * 1024) { setError("الصورة كبيرة جداً (الحد ١٥ ميجا)."); return; }
+    if (file.size > 15 * 1024 * 1024) { setError("الصورة كبيرة جداً (الحد 15 ميجا)."); return; }
     try { setImage(await toDataUrl(file)); } catch { setError("تعذر قراءة الصورة. جرّب صورة ثانية."); }
   }
 
   async function analyze() {
-    if (!image) { setError("ارفع صورة الفقعة أولاً 📷"); return; }
+    if (!image) { setError("اختر صورة الفقعة أول."); return; }
     setLoading(true); setError(null); setResult(null);
     try {
       const res = await fetch("/api/identify", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ image }) });
@@ -46,71 +46,85 @@ export function Identify() {
   }
 
   return (
-    <section id="identify" className="mx-auto max-w-6xl scroll-mt-20 px-4 pt-24">
-      <header className="mb-6">
-        <p className="text-sm text-ember">Llama 4 Vision</p>
-        <h2 className="font-display text-3xl md:text-4xl">صوّر فقعتك</h2>
-        <p className="mt-2 max-w-2xl text-sand-dim">زبيدي ولا خلاسي ولا جبي؟ ارفع صورة، و Llama يتعرف على النوع ويقدّر الجودة والسعر التقريبي وينبهك لعلامات التلف.</p>
-      </header>
+    <section id="identify" className="mx-auto max-w-7xl scroll-mt-28 px-5 pt-28" aria-labelledby="identify-title">
+      <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
+        <div>
+          <h2 id="identify-title" className="font-display text-4xl md:text-5xl">زبيدي ولا خلاسي؟</h2>
+          <p className="mt-3 max-w-md leading-8 text-muted">صوّر الفقعة، و Llama 4 يتعرف على نوعها ويقدّر جودتها وسعرها، وينبهك لو فيها تلف.</p>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="card flex flex-col gap-4 p-5">
+          <ul className="mt-8 divide-y divide-mist/70 border-y border-mist/70">
+            {TYPES.map((t) => (
+              <li key={t.name} className="flex items-center gap-4 py-4">
+                <span className="size-10 shrink-0 rounded-full" style={{ background: t.swatch }} aria-hidden />
+                <div>
+                  <p className="font-semibold">{t.name}</p>
+                  <p className="text-sm text-muted">{t.desc}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => { e.preventDefault(); onFile(e.dataTransfer.files?.[0]); }}
-            className="relative grid aspect-[4/3] place-items-center overflow-hidden rounded-2xl border-2 border-dashed border-sand/20 bg-night/60 transition hover:border-ember"
-            aria-label="اختر صورة الفقعة"
+            className="relative grid aspect-[4/3] w-full place-items-center overflow-hidden rounded-[18px] border border-dashed border-mist bg-ink-2 transition hover:border-cream/50"
+            aria-label={image ? "غيّر الصورة" : "اختر صورة الفقعة"}
           >
             {image
+              // eslint-disable-next-line @next/next/no-img-element -- local data URL preview
               ? <img src={image} alt="صورة الفقعة المرفوعة" className="absolute inset-0 h-full w-full object-cover" />
-              : <span className="flex flex-col items-center gap-2 text-sand-dim"><span className="text-4xl" aria-hidden>📷</span>اضغط للتصوير أو اسحب الصورة هنا</span>}
+              : <span className="flex flex-col items-center gap-3 px-6 text-center">
+                  <svg viewBox="0 0 24 24" className="size-9 text-muted" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></svg>
+                  <span className="text-cream">صوّر أو اختر صورة</span>
+                  <span className="text-sm text-muted">أو اسحبها هنا. JPG أو PNG أو WEBP</span>
+                </span>}
           </button>
           <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp" capture="environment" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
-          <div className="flex gap-2">
-            <button type="button" onClick={analyze} disabled={loading} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-ember px-5 py-3 font-semibold text-night transition hover:bg-dune disabled:cursor-wait disabled:opacity-70">
-              {loading ? <><Spinner /> Llama يفحص الصورة…</> : "تعرّف على الفقعة 🔍"}
+          <div className="mt-4 flex items-center gap-4">
+            <button type="button" onClick={analyze} disabled={loading || !image} className="btn-bolt flex items-center gap-2 px-6 py-3 disabled:cursor-not-allowed">
+              {loading ? <><Spinner /> يفحص الصورة</> : "تعرّف على الفقعة"}
             </button>
-            {image && !loading && <button type="button" onClick={() => { setImage(null); setResult(null); }} className="rounded-xl border border-sand/15 px-4 text-sm hover:bg-sand/5">صورة ثانية</button>}
+            {image && !loading && <button type="button" onClick={() => { setImage(null); setResult(null); }} className="text-sm text-muted underline underline-offset-4 hover:text-cream">صورة ثانية</button>}
           </div>
-          {error && <p role="alert" className="rounded-xl border border-rust/40 bg-rust/10 p-3 text-sm text-[#f3b7a6]">{error}</p>}
-        </div>
+          {error && <p role="alert" className="mt-4 text-sm text-alert">{error}</p>}
 
-        <div className="card min-h-[300px] p-5" aria-live="polite" aria-busy={loading}>
-          {loading && <div className="flex flex-col gap-3"><div className="skeleton h-10 w-1/2" /><div className="skeleton h-20" /><div className="skeleton h-24" /></div>}
-          {!loading && !result && (
-            <div className="grid h-full gap-3 text-sm text-sand-dim sm:grid-cols-3">
-              {[["زبيدي", "أبيض كريمي، الأغلى"], ["خلاسي", "محمر، متوسط إلى غالي"], ["جبي", "داكن، الأرخص"]].map(([t, d]) => (
-                <div key={t} className="rounded-2xl bg-night/50 p-4"><b className="font-display text-lg text-sand">{t}</b><p className="mt-1">{d}</p></div>
-              ))}
-            </div>
-          )}
-          {!loading && result && (
-            <div className="flex flex-col gap-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs text-sand-dim">{result.isTruffle ? "النوع المتوقع" : "النتيجة"}</p>
-                  <h3 className="font-display text-3xl text-ember">{result.type}</h3>
+          <div aria-live="polite" aria-busy={loading}>
+            {loading && <div className="mt-8 flex flex-col gap-3"><div className="skeleton h-10 w-1/2" /><div className="skeleton h-20" /></div>}
+            {!loading && result && (
+              <article className="mt-8 border-t border-mist pt-6">
+                <div className="flex items-end justify-between gap-3">
+                  <div>
+                    <p className="text-sm text-muted">{result.isTruffle ? "النوع المتوقع" : "النتيجة"}</p>
+                    <h3 className="mt-1 text-3xl font-semibold">{result.type}</h3>
+                  </div>
+                  {result.isTruffle && <p className="text-end text-sm text-muted">ثقة النموذج<span className="num block text-2xl font-semibold text-cream">{Math.round(result.confidence)}٪</span></p>}
                 </div>
-                {result.isTruffle && <div className="text-center">
-                  <div className="font-display text-3xl">{Math.round(result.confidence)}٪</div>
-                  <div className="text-xs text-sand-dim">ثقة النموذج</div>
-                </div>}
-              </div>
-              <p className="leading-8">{result.description}</p>
-              <dl className="grid grid-cols-2 gap-2 text-sm">
-                <div className="rounded-xl bg-night/50 p-3"><dt className="text-xs text-sand-dim">الجودة</dt><dd className="font-semibold">{result.quality}</dd></div>
-                <div className="rounded-xl bg-night/50 p-3"><dt className="text-xs text-sand-dim">السعر التقريبي للكيلو</dt><dd className="font-semibold">{result.priceRangeSar ? `${result.priceRangeSar.min}–${result.priceRangeSar.max} ريال` : "—"}</dd></div>
-                <div className="col-span-2 rounded-xl bg-night/50 p-3"><dt className="text-xs text-sand-dim">الطزاجة</dt><dd>{result.freshness}</dd></div>
-              </dl>
-              {result.warnings.length > 0 && <ul className="grid gap-1 rounded-xl border border-rust/30 bg-rust/10 p-3 text-sm">{result.warnings.map((w) => <li key={w}>⚠️ {w}</li>)}</ul>}
-              {result.tips.length > 0 && <ul className="grid gap-1 text-sm text-sand-dim">{result.tips.map((t) => <li key={t}>💡 {t}</li>)}</ul>}
-              <p className="text-[11px] text-sand-dim/80">التعرف من الصورة تقديري وقد يخطئ. الأسعار استرشادية وتتغير حسب الموسم والسوق.</p>
-            </div>
-          )}
+                <p className="mt-4 leading-8 text-cream/90">{result.description}</p>
+                {result.isTruffle && (
+                  <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-4 border-y border-mist py-4 text-sm">
+                    <div><dt className="text-muted">الجودة</dt><dd className="mt-1 font-medium">{result.quality}</dd></div>
+                    <div><dt className="text-muted">السعر التقريبي للكيلو</dt><dd className="num mt-1 font-medium">{result.priceRangeSar ? `${result.priceRangeSar.min} إلى ${result.priceRangeSar.max} ريال` : "ما يمدي نقدّر"}</dd></div>
+                    <div className="col-span-2"><dt className="text-muted">الطزاجة</dt><dd className="mt-1 leading-7">{result.freshness}</dd></div>
+                  </dl>
+                )}
+                {result.warnings.length > 0 && <ul className="mt-4 list-disc space-y-1 ps-5 text-sm leading-7 text-alert">{result.warnings.map((w) => <li key={w}>{w}</li>)}</ul>}
+                {result.tips.length > 0 && <ul className="mt-4 list-disc space-y-1 ps-5 text-sm leading-7 text-muted marker:text-rain">{result.tips.map((t) => <li key={t}>{t}</li>)}</ul>}
+                <p className="mt-5 text-xs text-muted">التعرف من الصورة تقديري وقد يخطئ، والأسعار استرشادية. لا تعتمد عليه في الحكم على صلاحية الأكل.</p>
+              </article>
+            )}
+          </div>
         </div>
       </div>
     </section>
   );
 }
+
+const TYPES = [
+  { name: "زبيدي", desc: "أبيض مائل للكريمي وحجمه كبير. الأغلى والأطيب.", swatch: "radial-gradient(circle at 35% 30%, #fbf4e4, #d9c6a2 70%, #a8916a)" },
+  { name: "خلاسي", desc: "قشرته محمرّة مائلة للبني، وداخله أغمق. سعره متوسط إلى غالي.", swatch: "radial-gradient(circle at 35% 30%, #e7b9a0, #a8644a 70%, #6e3b2a)" },
+  { name: "جبي", desc: "داكن يميل للأسود وأصغر حجماً. الأرخص بينهم.", swatch: "radial-gradient(circle at 35% 30%, #8a7564, #4a382c 70%, #241a14)" },
+];

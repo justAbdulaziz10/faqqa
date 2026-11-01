@@ -141,12 +141,13 @@ Then set `LLAMA_PROXY_URL` and `LLAMA_PROXY_SECRET` in your Vercel project.
 
 ## Tech stack
 
-Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind CSS 4 · zod · Leaflet with OpenStreetMap/CARTO tiles · Meta Llama 4 Scout on Cloudflare Workers AI · Vercel
+Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind CSS 4 · zod · Leaflet with Esri World Imagery tiles · Meta Llama 4 Scout on Cloudflare Workers AI · Vercel
 
 ## Data sources and licences
 
 - Weather and climate: [Open-Meteo](https://open-meteo.com) (CC BY 4.0), which aggregates ECMWF, DWD ICON and ERA5
-- Maps: © OpenStreetMap contributors · © CARTO
+- Satellite imagery and map labels: © Esri, Maxar, Earthstar Geographics
+- Hero image: AI-generated with FLUX.1 [schnell] on Cloudflare Workers AI
 - AI model: Meta Llama 4, subject to the [Llama 4 Community License](https://www.llama.com/llama4/license/)
 
 ## Limitations

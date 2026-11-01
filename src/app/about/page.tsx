@@ -10,7 +10,7 @@ export default function AboutPage() {
     <PageShell
       eyebrow="خلف الكواليس"
       title="كيف يشتغل فقّاع؟"
-      intro={<>أهل البر يقولون: «الفقع يطلع بعد رعد الوسم». فقّاع يحاول يحوّل هالحكمة الشعبية لأرقام من بيانات مناخ عالمية حقيقية، ثم يخلّي <b className="text-sand">Meta Llama 4</b> يشرحها لك بلهجتك.</>}
+      intro={<>أهل البر يقولون: «الفقع يطلع بعد رعد الوسم». فقّاع يحاول يحوّل هالحكمة الشعبية لأرقام من بيانات مناخ عالمية حقيقية، ثم يخلّي <b className="text-cream">Meta Llama 4</b> يشرحها لك بلهجتك.</>}
     >
       <Notice>
         <b>قبل كل شيء:</b> فقّاع مشروع شخصي تجريبي بنيته ضمن متطلبات معسكر أكاديمية طويق. المعادلة اجتهاد مبني على المعرفة الشعبية والعوامل المناخية المعروفة، <b>ولم تُختبر علمياً</b>، والنتائج <b>ليست دقيقة ١٠٠٪</b>.
@@ -58,7 +58,7 @@ export default function AboutPage() {
       </Block>
 
       <Block title="٥. التقنيات">
-        <p>Next.js 16 (App Router) وTypeScript وTailwind CSS، وخرائط Leaflet مع OpenStreetMap وCARTO، وMeta Llama 4 عبر Cloudflare Workers AI، والنشر على Vercel. الكود مفتوح المصدر على <a className="text-dune underline" href={SITE.repo} target="_blank" rel="noopener noreferrer">GitHub</a>.</p>
+        <p>Next.js 16 (App Router) وTypeScript وTailwind CSS، وخرائط Leaflet مع صور الأقمار الصناعية من Esri، وMeta Llama 4 عبر Cloudflare Workers AI، والنشر على Vercel. الكود مفتوح المصدر على <a className="text-rain underline" href={SITE.repo} target="_blank" rel="noopener noreferrer">GitHub</a>.</p>
       </Block>
 
       <Block title="٦. حدود فقّاع">

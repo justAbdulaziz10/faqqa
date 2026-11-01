@@ -1,33 +1,28 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Sans_Arabic, Reem_Kufi } from "next/font/google";
-import Link from "next/link";
+import { Aref_Ruqaa, Readex_Pro } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SITE } from "@/lib/site";
 
-const plex = IBM_Plex_Sans_Arabic({ subsets: ["arabic"], weight: ["300", "400", "500", "600", "700"], variable: "--font-plex", display: "swap" });
-const kufi = Reem_Kufi({ subsets: ["arabic"], weight: ["400", "500", "600", "700"], variable: "--font-kufi", display: "swap" });
+const readex = Readex_Pro({ subsets: ["arabic", "latin"], weight: "variable", variable: "--font-readex", display: "swap" });
+const ruqaa = Aref_Ruqaa({ subsets: ["arabic"], weight: ["400", "700"], variable: "--font-ruqaa", display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
   title: { default: `${SITE.name} | ${SITE.tagline}`, template: `%s | ${SITE.name}` },
   description: "فقّاع يقرأ أمطار الوسم والرعد ورطوبة التربة من بيانات المناخ العالمية، ويستخدم Llama ليقول لك وين احتمال الفقع أعلى هالموسم، ويتعرف على نوع الفقعة من صورتها.",
-  openGraph: { title: `${SITE.name} | ${SITE.tagline}`, description: "وين يطلع الفقع هالسنة؟ اسأل البيانات بدل التخمين.", locale: "ar_SA", type: "website" },
+  openGraph: { title: `${SITE.name} | ${SITE.tagline}`, description: "الفقع يطلع بعد رعد الوسم. شوف وين رعدت هالسنة.", locale: "ar_SA", type: "website" },
   twitter: { card: "summary_large_image" },
 };
 
-export const viewport: Viewport = { themeColor: "#120d09" };
+export const viewport: Viewport = { themeColor: "#0f1729" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ar" dir="rtl" className={`${plex.variable} ${kufi.variable}`}>
-      <body className="min-h-dvh flex flex-col">
-        <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:right-3 focus:z-50 focus:bg-ember focus:text-night focus:px-4 focus:py-2 focus:rounded-lg">تخطَّ إلى المحتوى</a>
-        <div className="border-b border-rust/30 bg-rust/15 px-4 py-2 text-center text-xs leading-6 text-sand">
-          ⚠️ مشروع شخصي تجريبي لمعسكر أكاديمية طويق · التقديرات تقريبية <b>وليست دقيقة ١٠٠٪</b> ولا تضمن وجود الفقع ·{" "}
-          <Link href="/terms" className="underline underline-offset-4">التفاصيل</Link>
-        </div>
+    <html lang="ar" dir="rtl" className={`${readex.variable} ${ruqaa.variable}`}>
+      <body className="flex min-h-dvh flex-col">
+        <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:right-3 focus:z-50 focus:rounded-lg focus:bg-bolt focus:px-4 focus:py-2 focus:text-ink">تخطَّ إلى المحتوى</a>
         <SiteHeader />
         <main id="main" className="flex-1">{children}</main>
         <SiteFooter />

@@ -3,56 +3,48 @@ import { getRadar, type Radar } from "@/lib/radar";
 import { RadarSection } from "@/components/RadarSection";
 import { Advisor } from "@/components/Advisor";
 import { Identify } from "@/components/Identify";
-import { arDate } from "@/lib/format";
-
+import { SeasonTimeline } from "@/components/SeasonTimeline";
 
 export default async function Home() {
   let radar: Radar | null = null;
   try { radar = await getRadar(); } catch (err) { console.error("[home] radar failed", err); }
 
-  const top = radar?.areas[0];
-  const totalRain = radar ? Math.max(...radar.areas.map((a) => a.wasmRain)) : 0;
+  const wettest = radar ? [...radar.areas].sort((a, b) => b.wasmRain - a.wasmRain)[0] : null;
   const thunderAreas = radar ? radar.areas.filter((a) => a.thunderDays > 0).length : 0;
+  const firstWindow = radar?.areas.map((a) => a.emergenceWindow).filter((w): w is NonNullable<typeof w> => !!w).sort((a, b) => a.from.localeCompare(b.from))[0] ?? null;
 
   return (
     <>
-      <section className="desert-sky grain relative overflow-hidden">
-        <div className="stars absolute inset-0 opacity-60" aria-hidden />
-        <div className="relative mx-auto grid max-w-6xl gap-10 px-4 pb-20 pt-16 md:pt-24 lg:grid-cols-[1.2fr_1fr] lg:items-center">
-          <div>
-            <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-ember/30 bg-ember/10 px-3 py-1 text-xs text-ember">
-              <span className="relative inline-flex size-2"><span className="pulse-ring absolute inline-flex size-full rounded-full bg-ember" /><span className="relative inline-flex size-2 rounded-full bg-ember" /></span>
-              موسم الوسم {radar ? `· اليوم ${radar.daysIntoSeason} من الموسم` : ""}
-            </p>
-            <h1 className="font-display text-5xl leading-tight md:text-7xl">
-              وين يطلع <span className="text-ember">الفقع</span>
-              <br />هالسنة؟
+      <section className="hero-photo relative isolate overflow-hidden">
+        <div className="flash pointer-events-none absolute inset-0 -z-10 mix-blend-screen" aria-hidden />
+        <div className="mx-auto flex min-h-[calc(100svh-96px)] max-w-7xl flex-col justify-end px-5 pb-10 pt-28 md:pb-14">
+          <div className="max-w-2xl">
+            <h1 className="font-display text-[56px] leading-[1.15] text-cream sm:text-7xl md:text-[96px] md:leading-[1.1]">
+              الفقع يطلع
+              <br />
+              بعد رعد الوسم
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-9 text-sand-dim">
-              «الفقع يطلع بعد رعد الوسم»… فقّاع يحوّل هالحكمة لأرقام: يقرأ أمطار الوسم والرعد ورطوبة التربة من نماذج المناخ العالمية، و <b className="text-sand">Llama</b> يقولك وين الاحتمال أعلى ومتى.
+            <p className="mt-6 max-w-xl text-lg leading-8 text-cream/85">
+              فقّاع يتابع المطر والرعد ورطوبة التربة على {radar?.areas.length ?? 24} منطقة فقع في المملكة من نماذج المناخ العالمية، ويقولك وين الأرض شربت هالسنة.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="#advisor" className="rounded-full bg-ember px-6 py-3 font-semibold text-night transition hover:bg-dune">اسأل فقّاع ✨</Link>
-              <Link href="#radar" className="rounded-full border border-sand/20 px-6 py-3 transition hover:bg-sand/5">شوف الرادار</Link>
+            {radar && wettest && (
+              <p className="mt-4 max-w-xl leading-8 text-muted">
+                اليوم <span className="num text-cream">{radar.daysIntoSeason}</span> من الوسم. أكثر منطقة جاها مطر: <b className="font-semibold text-cream">{wettest.name}</b> بـ <span className="num text-cream">{wettest.wasmRain}</span> ملم
+                {thunderAreas > 0 ? <>، وسمعت الرعد {thunderAreas === 1 ? "منطقة وحدة" : <><span className="num">{thunderAreas}</span> مناطق</>}.</> : "، وما رعدت على أي منطقة للحين."}
+              </p>
+            )}
+            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+              <Link href="#radar" className="btn-bolt px-7 py-3.5">افتح الرادار</Link>
+              <Link href="#advisor" className="text-cream underline decoration-cream/30 underline-offset-8 transition hover:decoration-bolt">اسأل فقّاع وين تروح</Link>
             </div>
           </div>
-
-          <div className="card p-6">
-            <p className="text-sm text-sand-dim">الوضع الآن من بيانات المناخ الحية</p>
-            {radar && top ? (
-              <dl className="mt-4 grid grid-cols-2 gap-4">
-                <HeroStat label="أعلى منطقة الآن" value={top.name} hint={`${top.score}/100 · ${top.label}`} />
-                <HeroStat label="أعلى أمطار وسم" value={`${totalRain} ملم`} hint={`منذ ${arDate(radar.seasonStart)}`} />
-                <HeroStat label="مناطق سمعت رعد" value={`${thunderAreas} من ${radar.areas.length}`} hint="منذ بداية الوسم" />
-                <HeroStat label="الطلوع المتوقع" value={top.emergenceWindow ? arDate(top.emergenceWindow.from) : "بانتظار المطر"} hint={top.emergenceWindow ? `إلى ${arDate(top.emergenceWindow.to)}` : "ما نزل مطر فعّال للحين"} />
-              </dl>
-            ) : (
-              <p role="alert" className="mt-4 rounded-xl border border-rust/40 bg-rust/10 p-3 text-sm">تعذر جلب بيانات المناخ الآن. حدّث الصفحة بعد قليل.</p>
-            )}
-            <p className="mt-5 border-t border-sand/10 pt-4 text-[11px] leading-6 text-sand-dim">
-              ⚠️ تقديرات تقريبية من نموذج تجريبي وليست دقيقة ١٠٠٪ · مشروع شخصي لمعسكر أكاديمية طويق
-            </p>
-          </div>
+          {radar ? (
+            <div className="mt-14 max-w-4xl">
+              <SeasonTimeline seasonStart={radar.seasonStart} today={radar.generatedAt.slice(0, 10)} emergence={firstWindow} />
+            </div>
+          ) : (
+            <p role="alert" className="mt-10 max-w-xl rounded-xl border border-alert/40 bg-alert/10 p-3 text-sm">بيانات المناخ ما وصلت الحين. حدّث الصفحة بعد دقائق.</p>
+          )}
         </div>
       </section>
 
@@ -60,30 +52,25 @@ export default async function Home() {
       <Advisor />
       <Identify />
 
-      <section className="mx-auto max-w-6xl px-4 pt-24">
-        <div className="card grid gap-6 p-6 md:grid-cols-3">
+      <section className="mx-auto max-w-7xl px-5 pt-28" aria-labelledby="how">
+        <h2 id="how" className="font-display text-4xl md:text-5xl">من المطر إلى الجواب</h2>
+        <ol className="mt-10 grid gap-10 md:grid-cols-3 md:gap-8">
           {[
-            ["١. بيانات حية", "أمطار يومية، أيام رعد، رطوبة التربة، الحرارة، وتوقعات ٧ أيام لكل منطقة فقع معروفة من نماذج ECMWF وDWD عبر Open-Meteo."],
-            ["٢. نموذج تقييم", "معادلة شفافة تعطي كل منطقة درجة من ١٠٠، وتحسب نافذة الطلوع المتوقعة بعد ٦٠–٧٥ يوماً من أول مطر فعّال."],
-            ["٣. عقل Llama", "Llama 4 يقرأ الأرقام ويجاوب سؤالك بخطة منظمة (JSON) نتحقق منها قبل عرضها، ويتعرف على الفقع من الصور."],
-          ].map(([t, d]) => (
-            <div key={t}><h3 className="font-display text-xl text-ember">{t}</h3><p className="mt-2 text-sm leading-7 text-sand-dim">{d}</p></div>
+            ["المطر والرعد", "كل ساعة يسحب فقّاع أمطار كل منطقة من 16 أكتوبر، وأيام الرعد، ورطوبة التربة، والحرارة، وتوقعات أسبوع من نماذج ECMWF وDWD."],
+            ["المؤشر", "معادلة مكشوفة تعطي كل منطقة درجة من 100، وتحسب موعد الطلوع: 60 إلى 75 يوم بعد أول 10 ملم."],
+            ["Llama", "Meta Llama 4 يقرأ الأرقام ويرد على سؤالك بخطة، ويتعرف على الفقع من الصورة. كل رد يمر على تحقق قبل ما يوصلك."],
+          ].map(([t, d], i) => (
+            <li key={t} className="border-t border-mist pt-5">
+              <span className="num text-sm text-bolt">{i + 1}</span>
+              <h3 className="mt-2 text-xl font-semibold">{t}</h3>
+              <p className="mt-2 leading-8 text-muted">{d}</p>
+            </li>
           ))}
-        </div>
-        <div className="mt-4 rounded-2xl border border-rust/30 bg-rust/5 p-5 text-sm leading-7">
-          <b>تنبيه مهم:</b> فقّاع مشروع شخصي تجريبي بنيته ضمن متطلبات معسكر أكاديمية طويق. النتائج تقديرية <b>وليست دقيقة ١٠٠٪</b>، ولا تضمن وجود الفقع في أي مكان. التزم بأنظمة البيئة والمحميات، ولا تدخل الأودية وقت السيول. <Link href="/terms" className="text-dune underline">الشروط وإخلاء المسؤولية</Link>
-        </div>
+        </ol>
+        <p className="mt-10 text-sm text-muted">
+          تفاصيل المعادلة وحدودها في <Link href="/about" className="text-cream underline underline-offset-4">كيف يشتغل فقّاع</Link>.
+        </p>
       </section>
     </>
-  );
-}
-
-function HeroStat({ label, value, hint }: { label: string; value: string; hint: string }) {
-  return (
-    <div className="rounded-2xl bg-night/60 p-4">
-      <dt className="text-xs text-sand-dim">{label}</dt>
-      <dd className="mt-1 font-display text-2xl text-sand">{value}</dd>
-      <dd className="text-xs text-sand-dim">{hint}</dd>
-    </div>
   );
 }
