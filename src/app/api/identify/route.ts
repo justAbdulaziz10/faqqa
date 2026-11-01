@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { askLlamaJson, VISION_MODEL } from "@/lib/llama";
 import { IdentifyRequest, IdentifySchema, type Identify } from "@/lib/schemas";
-import { fail, failFromError, rateLimited } from "@/lib/http";
+import { dailyLimited, fail, failFromError, rateLimited } from "@/lib/http";
 import { deepPlain } from "@/lib/format";
 
 export const maxDuration = 60;
@@ -90,7 +90,7 @@ export async function POST(req: Request) {
   if (!parsed.success) return fail(400, "invalid_input", parsed.error.issues[0]?.message ?? "مدخلات غير صحيحة");
 
   // Only requests that will reach Llama count toward the per-IP limit.
-  const limited = rateLimited(req);
+  const limited = rateLimited(req) ?? dailyLimited(req, "identify");
   if (limited) return limited;
 
   try {

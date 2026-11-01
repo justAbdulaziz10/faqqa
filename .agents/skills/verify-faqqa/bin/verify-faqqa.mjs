@@ -23,7 +23,7 @@ const HELP = `verify-faqqa <command> [options]
   drive <feature>        run one self-checking drive; features:
                            home | areas-index | advisor-validation | advisor-guard |
                            identify | identify-retry | identify-evidence | identify-validation |
-                           radar (needs --allow-network: calls api.open-meteo.com)
+                           radar, advisor-cache (need --allow-network: call api.open-meteo.com)
   drive all              every offline drive
   down                   stop only the PIDs this run started
   stub-serve --port N --log FILE   (internal) run the Llama stub
@@ -51,6 +51,7 @@ const GOOD_IDENTIFY = {
   tips: ["اغسلها بماء بارد"], warnings: [],
   signs: { eyesOrSprouts: false, purple: false, shiny: false, lumpyMatte: true }, looksLike: "فقع", colorType: "زبيدي",
 };
+const GOOD_ADVISOR = { kind: "reply", headline: "هلا", summary: "الفقع يحتاج مطر الوسم.", recommendations: [], seasonOutlook: "", safety: [], confidence: "عالية" };
 // Llama's known slip: describes a lumpy, eyeless truffle and still says "not a truffle". The app must overrule it.
 const SAYS_POTATO = {
   ...GOOD_IDENTIFY, isTruffle: false, type: "ليس فقعاً", confidence: 0, priceRangeSar: null, description: "كتل بنية فاتحة متكتلة، ما فيها عيون",
@@ -75,7 +76,7 @@ function stubServe(port, logFile) {
       if (req.headers.authorization !== `Bearer ${SECRET}`) { res.writeHead(401, { "content-type": "application/json" }); return res.end(JSON.stringify({ error: "unauthorized" })); }
       // Scenario: a note containing STUB_BAD_FIRST gets an invalid reply until the app retries with feedback.
       const badFirst = text.includes("STUB_BAD_FIRST") && !text.includes("غير مطابق");
-      const reply = text.includes("STUB_SAYS_POTATO") ? SAYS_POTATO : text.includes("STUB_REAL_POTATO") ? REAL_POTATO : GOOD_IDENTIFY;
+      const reply = text.includes("سؤال_المستخدم") ? GOOD_ADVISOR : text.includes("STUB_SAYS_POTATO") ? SAYS_POTATO : text.includes("STUB_REAL_POTATO") ? REAL_POTATO : GOOD_IDENTIFY;
       const response = badFirst ? "```json\n{\"isTruffle\": \"maybe\"}\n```" : "Here you go:\n```json\n" + JSON.stringify(reply) + "\n```";
       res.writeHead(200, { "content-type": "application/json" });
       res.end(JSON.stringify({ response }));
@@ -97,7 +98,7 @@ async function up() {
   const logFd = fs.openSync(nextLog, "w");
   const next = spawn(path.join(ROOT, "node_modules/.bin/next"), ["dev", "--port", String(port), "--hostname", "127.0.0.1"], {
     cwd: ROOT, detached: true, stdio: ["ignore", logFd, logFd],
-    env: { ...process.env, LLAMA_PROXY_URL: `http://127.0.0.1:${stubPort}/`, LLAMA_PROXY_SECRET: SECRET, NEXT_TELEMETRY_DISABLED: "1" },
+    env: { ...process.env, LLAMA_PROXY_URL: `http://127.0.0.1:${stubPort}/`, LLAMA_PROXY_SECRET: SECRET, LLAMA_PROVIDER: "proxy", NEXT_TELEMETRY_DISABLED: "1" },
   });
   stub.unref(); next.unref();
   const state = { nextPid: next.pid, stubPid: stub.pid, port, stubPort, base: `http://127.0.0.1:${port}`, stubLog, nextLog, startedAt: new Date().toISOString() };
@@ -195,6 +196,22 @@ const DRIVES = {
       llamaNotCalled: stubCalls(st).length === before,
     } };
   },
+  async "advisor-cache"(st) {
+    if (!flag("allow-network")) return { skipped: true, checks: { networkAllowed: false }, reason: "advisor needs live rain data from api.open-meteo.com; rerun with --allow-network" };
+    const before = stubCalls(st).length;
+    const q = `متى يبدأ الفقع؟ ${Date.now()}`;
+    const first = await call(st, "POST", "/api/advisor", { question: q, originId: "riyadh" });
+    const again = await call(st, "POST", "/api/advisor", { question: `  ${q.replace("؟", "")}  ؟`, originId: "riyadh" });
+    const otherCity = await call(st, "POST", "/api/advisor", { question: q, originId: "jeddah" });
+    const followUp = await call(st, "POST", "/api/advisor", { question: q, originId: "riyadh", history: [{ q: "هلا", a: "هلا والله" }] });
+    return { request: "POST /api/advisor: same question twice (punctuation differs), another city, then as a follow-up", response: { first: first.json, again: again.json }, checks: {
+      firstAnswered: first.status === 200 && first.json?.result?.headline === "هلا" && !first.json?.cached,
+      repeatServedFromCache: again.status === 200 && again.json?.cached === true && again.json?.result?.headline === "هلا",
+      otherCityNotCached: otherCity.status === 200 && !otherCity.json?.cached,
+      followUpNotCached: followUp.status === 200 && !followUp.json?.cached,
+      threeLlamaCalls: stubCalls(st).length - before === 3,
+    } };
+  },
   async identify(st) {
     const before = stubCalls(st).length;
     const r = await call(st, "POST", "/api/identify", { image: PNG, note: "من حفر الباطن" });
@@ -254,7 +271,7 @@ const DRIVES = {
 async function drive(feature) {
   const st = readState();
   if (!st || !alive(st.nextPid)) return out({ ok: false, reason: "no running instance from this checkout; run `up`" });
-  const names = feature === "all" ? Object.keys(DRIVES).filter((n) => n !== "radar") : [feature];
+  const names = feature === "all" ? Object.keys(DRIVES).filter((n) => n !== "radar" && n !== "advisor-cache") : [feature];
   const results = [];
   for (const name of names) {
     if (!DRIVES[name]) return out({ ok: false, reason: `unknown feature '${name}'`, features: Object.keys(DRIVES) });

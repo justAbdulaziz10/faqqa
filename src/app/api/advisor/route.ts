@@ -4,7 +4,7 @@ import { getRadar } from "@/lib/radar";
 import { askLlamaJson, LlamaError } from "@/lib/llama";
 import { cannedReply, fallbackPlan } from "@/lib/advisor-guard";
 import { AdvisorRequest, AdvisorSchema, type Advisor } from "@/lib/schemas";
-import { fail, failFromError, rateLimited } from "@/lib/http";
+import { dailyLimited, fail, failFromError, rateLimited } from "@/lib/http";
 import { arDate, deepPlain, driveHours } from "@/lib/format";
 
 export const maxDuration = 60;
@@ -92,12 +92,18 @@ export async function POST(req: Request) {
   const canned = cannedReply(question);
   if (canned) return NextResponse.json({ ok: true, model: "Llama 4 Scout", attempts: 0, origin: origin?.name ?? null, result: canned });
 
-  // Only requests that will reach Llama count toward the per-IP limit.
-  const limited = rateLimited(req);
-  if (limited) return limited;
-
   try {
     const radar = await getRadar();
+
+    // Same question, same city, same rain data: reuse the answer instead of spending quota.
+    const cacheKey = history.length ? null : `${radar.generatedAt}|${origin?.id ?? ""}|${normalize(question)}`;
+    const hit = cacheKey ? answers.get(cacheKey) : undefined;
+    if (hit) return NextResponse.json({ ...hit, cached: true });
+
+    // Only requests that will reach Llama count toward the per-IP limits.
+    const limited = rateLimited(req) ?? dailyLimited(req, "advisor");
+    if (limited) return limited;
+
     const withKm = radar.areas.map((a) => ({ ...a, distanceKm: origin ? distanceKm(origin, a) : null }));
     const best = [...withKm].sort((a, b) => b.score - (b.distanceKm ?? 0) / 40 - (a.score - (a.distanceKm ?? 0) / 40)).slice(0, 8);
     const near = [...withKm].sort((a, b) => (a.distanceKm ?? 0) - (b.distanceKm ?? 0)).slice(0, 4);
@@ -189,11 +195,20 @@ export async function POST(req: Request) {
       return { ...r, area: { id: area.id, name: area.name, region: area.region, lat: area.lat, lon: area.lon, score: area.score, label: area.label, distanceKm: origin ? distanceKm(origin, area) : null } };
     });
 
-    return NextResponse.json({ ok: true, model: "Llama 4 Scout", attempts, origin: origin?.name ?? null, fallback, result: deepPlain({ ...data, recommendations }) });
+    const payload = { ok: true, model: "Llama 4 Scout", attempts, origin: origin?.name ?? null, fallback, result: deepPlain({ ...data, recommendations }) };
+    if (cacheKey && !fallback) {
+      if (answers.size >= 300) answers.delete(answers.keys().next().value!);
+      answers.set(cacheKey, payload);
+    }
+    return NextResponse.json(payload);
   } catch (err) {
     return failFromError(err);
   }
 }
+
+// Answers to repeated questions, keyed by rain-data timestamp so they expire with each radar refresh.
+const answers = new Map<string, object>();
+const normalize = (q: string) => q.replace(/[ً-ْٰـ]/g, "").replace(/[؟?!.،,]/g, "").replace(/\s+/g, " ").trim();
 
 export function GET() {
   return NextResponse.json({ ok: true, areas: AREAS.length, origins: ORIGINS.map((o) => o.id) });

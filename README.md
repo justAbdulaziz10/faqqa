@@ -30,17 +30,19 @@ Browser (Next.js + Tailwind, Arabic RTL)
    │  GET  /api/radar
    ▼
 Next.js Route Handlers (Vercel)
-   ├─ Input validation with zod (empty input, length limits, image format) + per-IP rate limit
+   ├─ Input validation with zod (empty input, length limits, image format)
+   ├─ Per-IP limits: 8 requests a minute, plus a daily cap (40 questions, 15 photos)
+   ├─ Repeated questions answered from a cache keyed by the rain-data timestamp
    ├─ lib/radar.ts  → Open-Meteo (ECMWF / DWD ICON / ERA5) → scoring model (cached for 1h via "use cache")
-   └─ lib/llama.ts  → authenticated Cloudflare Worker (llama-worker/) → Workers AI
-                       model: @cf/meta/llama-4-scout-17b-16e-instruct
+   └─ lib/llama.ts  → Vercel AI Gateway (OIDC, no stored key) → meta/llama-4-scout
+                       fallback: optional Cloudflare Worker proxy (llama-worker/) while LLAMA_PROXY_URL is set
                        ├─ response_format: json_object
                        ├─ strict zod schema validation + check that every areaId really exists
                        └─ one automatic retry with the validation errors sent back to the model,
                           otherwise a clear error to the user (never a half-broken result)
 ```
 
-The Llama key never reaches the browser. The Next.js server calls a small Cloudflare Worker protected by a bearer secret, and the Worker only allows whitelisted Llama models.
+No model credential reaches the browser. On Vercel, the server authenticates to AI Gateway with the deployment's short-lived OIDC token, so there is no API key to store or leak. A provider that reports its quota is used up is skipped until it resets, so fallbacks answer instantly.
 
 ## What Llama returns
 
@@ -123,30 +125,26 @@ src/
     radar.ts              # Open-Meteo fetch + scoring model
     llama.ts              # Llama client: JSON coercion, validation, retry
     schemas.ts            # zod schemas for requests and Llama output
-llama-worker/             # Cloudflare Worker proxy to Workers AI (Meta Llama)
+llama-worker/             # optional fallback: Cloudflare Worker proxy to Workers AI
 ```
 
 ## Running locally
 
 ```bash
 npm install
-cp .env.example .env.local   # set LLAMA_PROXY_URL and LLAMA_PROXY_SECRET
+vercel link && vercel env pull .env.local   # gives a local OIDC token for AI Gateway
 npm run dev
 ```
 
-### Deploying the Llama worker
+Outside Vercel, set `AI_GATEWAY_API_KEY` instead. AI Gateway's free monthly credits need a card on file on the Vercel team.
 
-```bash
-cd llama-worker
-npx wrangler deploy
-npx wrangler secret put PROXY_SECRET
-```
+### Optional: Cloudflare Workers AI fallback
 
-Then set `LLAMA_PROXY_URL` and `LLAMA_PROXY_SECRET` in your Vercel project.
+`llama-worker/` is a small proxy to Workers AI. Deploy it with `npx wrangler deploy` and `npx wrangler secret put PROXY_SECRET`, then set `LLAMA_PROXY_URL` and `LLAMA_PROXY_SECRET`. Its free plan allows 10,000 neurons a day, which is roughly 100 to 150 calls once photos are involved.
 
 ## Tech stack
 
-Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind CSS 4 · zod · Leaflet with Esri World Imagery tiles · Meta Llama 4 Scout on Cloudflare Workers AI · Vercel
+Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind CSS 4 · zod · Leaflet with Esri World Imagery tiles · Meta Llama 4 Scout via Vercel AI Gateway · Vercel
 
 ## Data sources and licences
 
