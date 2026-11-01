@@ -5,5 +5,5 @@ export const SITE = {
   author: "عبدالعزيز الخليوي",
   github: "https://github.com/justAbdulaziz10",
   repo: "https://github.com/justAbdulaziz10/faqqa",
-  coffee: "https://buymeacoffee.com/justAbdulaziz10",
+  coffee: "https://buymeacoffee.com/someoneveryverybored",
 };
