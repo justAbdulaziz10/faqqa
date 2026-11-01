@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { askLlamaJson, VISION_MODEL } from "@/lib/llama";
-import { IdentifyRequest, IdentifySchema } from "@/lib/schemas";
+import { IdentifyRequest, IdentifySchema, type Identify } from "@/lib/schemas";
 import { fail, failFromError, rateLimited } from "@/lib/http";
 import { deepPlain } from "@/lib/format";
 
@@ -30,6 +31,14 @@ const SYSTEM = `أنت خبير سعودي في الفقع (الكمأ الصح�
 أرجع JSON فقط بهذا الترتيب:
 {
   "description": "وصف اللي تشوفه في الصورة",
+  "signs": {
+    "eyesOrSprouts": true أو false (تشوف عيون بطاطس أو براعم فعلا؟),
+    "purple": true أو false (فيه حبات لونها بنفسجي؟),
+    "shiny": true أو false (القشرة لامعة واضح؟),
+    "lumpyMatte": true أو false (متكتل غير منتظم وقشرته مطفية؟)
+  },
+  "looksLike": "فقع" | "بطاطس" | "شي ثاني",
+  "colorType": "زبيدي" | "خلاسي" | "جبي" | "هبر" | "غير محدد" (النوع حسب اللون والحجم لو كان فقع),
   "isTruffle": true,
   "type": "زبيدي" | "خلاسي" | "جبي" | "هبر" | "غير محدد" | "ليس فقعاً",
   "confidence": رقم من 0 إلى 100,
@@ -39,6 +48,41 @@ const SYSTEM = `أنت خبير سعودي في الفقع (الكمأ الصح�
   "tips": ["نصيحة تنظيف أو حفظ أو طبخ"],
   "warnings": ["تحذير إن وجد"]
 }`;
+
+// The model reports what it sees; the truffle-or-potato call is made here from that evidence,
+// because Llama often describes a lumpy, eyeless, matte truffle and still answers "not a truffle".
+const Evidence = IdentifySchema.extend({
+  signs: z.object({ eyesOrSprouts: z.boolean(), purple: z.boolean(), shiny: z.boolean(), lumpyMatte: z.boolean() }),
+  looksLike: z.enum(["فقع", "بطاطس", "شي ثاني"]),
+  colorType: z.enum(["زبيدي", "خلاسي", "جبي", "هبر", "غير محدد"]),
+});
+type Evidence = z.infer<typeof Evidence>;
+
+const PRICES = { زبيدي: { min: 250, max: 700 }, خلاسي: { min: 150, max: 400 }, جبي: { min: 50, max: 150 } } as const;
+
+function decide(v: Evidence): Identify {
+  const { signs, looksLike, colorType, ...out } = v;
+  const potatoSign = signs.eyesOrSprouts || signs.purple;
+  const truffle = looksLike !== "شي ثاني" && !potatoSign && (looksLike === "فقع" || signs.lumpyMatte || out.isTruffle);
+  if (truffle === out.isTruffle && (!truffle || out.type !== "ليس فقعاً")) return out;
+  if (!truffle) return { ...out, isTruffle: false, type: "ليس فقعاً", priceRangeSar: null };
+  // Overruled "not a truffle": rebuild the parts that were written for the wrong answer.
+  const type = colorType;
+  return {
+    ...out,
+    isTruffle: true,
+    type,
+    confidence: Math.min(70, Math.max(55, out.confidence)),
+    priceRangeSar: type in PRICES ? PRICES[type as keyof typeof PRICES] : null,
+    tips: out.tips.filter((t) => !/بطاط|ليس|ليست|مو فقع/.test(t)),
+    warnings: out.warnings.filter((t) => !/بطاط|ليس|ليست|مو فقع|لا تظهر/.test(t)),
+  };
+}
+
+// Tidy the prose but keep enum values exactly as the schema spells them ("ليس فقعاً").
+function plainText(v: Identify): Identify {
+  return { ...deepPlain(v), type: v.type, quality: v.quality };
+}
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
@@ -51,7 +95,7 @@ export async function POST(req: Request) {
 
   try {
     const { data, attempts } = await askLlamaJson({
-      schema: IdentifySchema,
+      schema: Evidence,
       model: VISION_MODEL,
       maxTokens: 900,
       messages: [
@@ -66,13 +110,10 @@ export async function POST(req: Request) {
       ],
       refine: (v) => {
         if (v.priceRangeSar && v.priceRangeSar.min > v.priceRangeSar.max) return "priceRangeSar.min لازم يكون أصغر من max";
-        // Vision models often call desert truffles potatoes; only accept that if it saw potato eyes or sprouts.
-        if (!v.isTruffle && /بطاط/.test(v.description) && !/عيون|عين|براعم|برعم|ناعم|ملس|لامع|بيضاوي|مستطيل|منتظم|بنفسج/.test(v.description))
-          return "قلت بطاطس بدون ما تذكر أي علامة بطاطس (عيون، براعم، قشرة ناعمة أو لامعة، شكل بيضاوي منتظم، لون بنفسجي). راجع الصورة واذكر العلامات اللي تشوفها. إذا ما فيه علامة بطاطس وشكله متكتل خشن فهو فقع.";
         return null;
       },
     });
-    return NextResponse.json({ ok: true, model: "Llama 4 Scout (Vision)", attempts, result: deepPlain(data) });
+    return NextResponse.json({ ok: true, model: "Llama 4 Scout (Vision)", attempts, result: plainText(decide(data)) });
   } catch (err) {
     return failFromError(err);
   }

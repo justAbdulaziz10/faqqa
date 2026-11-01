@@ -20,6 +20,7 @@ export function Identify() {
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryable, setRetryable] = useState(true);
   const [result, setResult] = useState<IdentifyResult | null>(null);
 
   async function onFile(file?: File) {
@@ -27,16 +28,23 @@ export function Identify() {
     if (!file) return;
     if (!/^image\/(png|jpe?g|webp)$/.test(file.type)) { setError("هذي الصيغة ما تنفع. استخدم صورة JPG أو PNG أو WEBP."); return; }
     if (file.size > 15 * 1024 * 1024) { setError("الصورة كبيرة. الحد 15 ميجا."); return; }
-    try { setImage(await toDataUrl(file)); } catch { setError("ما قدرنا نقرأ الصورة. جرب صورة ثانية."); }
+    let url: string;
+    try { url = await toDataUrl(file); } catch { setError("ما قدرنا نقرأ الصورة. جرب صورة ثانية."); return; }
+    setImage(url);
+    analyze(url);
   }
 
-  async function analyze() {
-    if (!image) { setError("اختر صورة الفقعة أول."); return; }
+  // Picking a photo starts the check; the button only shows to retry after an error.
+  async function analyze(image: string) {
     setLoading(true); setError(null); setResult(null);
     try {
       const res = await fetch("/api/identify", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ image }) });
       const data = await res.json().catch(() => null);
-      if (!res.ok || !data?.ok) throw new Error(data?.error?.message ?? "ما قدرنا نفحص الصورة. جرب مرة ثانية.");
+      if (!res.ok || !data?.ok) {
+        // Retrying can't help when the daily model quota is used up or the photo itself was rejected.
+        setRetryable(!["llama_quota", "invalid_input"].includes(data?.error?.code));
+        throw new Error(data?.error?.message ?? "ما قدرنا نفحص الصورة. جرب مرة ثانية.");
+      }
       setResult(data.result);
     } catch (err) {
       setError((err as Error).message);
@@ -57,6 +65,7 @@ export function Identify() {
         <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
           <button
             type="button"
+            disabled={loading}
             onClick={() => inputRef.current?.click()}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => { e.preventDefault(); onFile(e.dataTransfer.files?.[0]); }}
@@ -64,8 +73,11 @@ export function Identify() {
             aria-label={image ? "غير الصورة" : "اختر صورة الفقعة"}
           >
             {image
-              // eslint-disable-next-line @next/next/no-img-element -- local data URL preview
-              ? <img src={image} alt="صورة الفقعة المرفوعة" className="absolute inset-0 h-full w-full object-cover" />
+              ? <>
+                  {/* eslint-disable-next-line @next/next/no-img-element -- local data URL preview */}
+                  <img src={image} alt="صورة الفقعة المرفوعة" className={`absolute inset-0 h-full w-full object-cover transition duration-500 ${loading ? "brightness-75 saturate-50" : ""}`} />
+                  {loading && <span className="scan absolute inset-0" aria-hidden />}
+                </>
               : <span className="flex flex-col items-center gap-3 px-10 text-center">
                   <svg viewBox="0 0 32 32" className="size-9 text-cream transition group-hover:text-bolt" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden>
                     <path d="M3 10h6l3-5h8l3 5h6v17H3z" /><circle cx="16" cy="17" r="5.5" />
@@ -74,12 +86,11 @@ export function Identify() {
                   <span className="text-sm text-muted">وحدة بس، قريبة، في ضوء النهار</span>
                 </span>}
           </button>
-          <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
-          <div className="mt-8 flex items-center justify-center gap-4">
-            <button type="button" onClick={analyze} disabled={loading || !image} data-empty={!image || undefined} className="btn-bolt flex items-center gap-2 px-6 py-3 disabled:cursor-not-allowed">
-              {loading ? <><Spinner /> يفحص الصورة</> : "افحص الصورة"}
-            </button>
-            {image && !loading && <button type="button" onClick={() => { setImage(null); setResult(null); }} className="text-sm text-muted underline underline-offset-4 hover:text-cream">صورة ثانية</button>}
+          <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ""; }} />
+          <div className="mt-8 flex min-h-12 items-center justify-center gap-5">
+            {loading && <p className="flex items-center gap-2 text-sm text-muted"><Spinner /> يفحص الصورة</p>}
+            {image && !loading && error && retryable && <button type="button" onClick={() => analyze(image)} className="btn-bolt px-6 py-3">افحصها مرة ثانية</button>}
+            {image && !loading && <button type="button" onClick={() => inputRef.current?.click()} className="text-sm text-muted underline underline-offset-4 hover:text-cream">صورة ثانية</button>}
           </div>
           {error && <p role="alert" className="mt-4 text-center text-sm text-alert">{error}</p>}
           <div aria-live="polite" aria-busy={loading}>

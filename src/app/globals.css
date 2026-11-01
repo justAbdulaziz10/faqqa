@@ -74,6 +74,7 @@ body {
 .flash { animation: flash 2.4s ease-out 0.5s 1 both; background: radial-gradient(60% 50% at 22% 55%, #fdf6d0, transparent 70%); }
 
 @media (prefers-reduced-motion: reduce) {
+  .scan::before { animation: none; transform: rotate(-45deg); }
   html { scroll-behavior: auto; }
   .flash { animation: none; opacity: 0; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
@@ -103,6 +104,14 @@ body {
 .btn-bolt:disabled { opacity: .65; cursor: wait; }
 .btn-bolt[data-empty]:disabled { background: var(--color-cloud); color: var(--color-muted); opacity: 1; cursor: not-allowed; }
 
+/* Radar sweep over the photo while it is being checked. */
+@keyframes sweep { to { transform: rotate(1turn); } }
+.scan::before {
+  content: ""; position: absolute; inset: -20%;
+  background: conic-gradient(from 0deg, transparent 0 78%, rgb(253 230 138 / 0.08) 86%, rgb(253 230 138 / 0.55) 99.6%, transparent 100%);
+  animation: sweep 2.2s linear infinite;
+}
+.scan::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(circle, transparent 0 31%, rgb(253 230 138 / 0.25) 31.5%, transparent 32.5%, transparent 63%, rgb(253 230 138 / 0.18) 63.5%, transparent 64.5%); }
 @keyframes shimmer { 0% { background-position: -400px 0 } 100% { background-position: 400px 0 } }
 .skeleton { background: linear-gradient(90deg, rgba(154,166,189,.06), rgba(154,166,189,.16), rgba(154,166,189,.06)); background-size: 800px 100%; animation: shimmer 1.4s infinite linear; border-radius: 10px; }
 

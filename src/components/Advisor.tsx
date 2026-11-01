@@ -101,9 +101,9 @@ export function Advisor({ context = [] }: { context?: AdvisorContext }) {
 
   return (
     <section id="advisor" className="mx-auto max-w-7xl scroll-mt-20 px-5 mt-20 md:mt-28" aria-labelledby="advisor-title">
+      <h2 id="advisor-title" className="font-display text-4xl font-bold md:text-5xl">اسأل فقاع</h2>
       <div className="grid gap-16 lg:grid-cols-[minmax(0,48rem)_1fr]">
       <div>
-      <h2 id="advisor-title" className="font-display text-4xl font-bold md:text-5xl">اسأل فقاع</h2>
 
       <Bubble>
         <p className="font-semibold leading-8">هلا، أنا فقاع</p>
@@ -141,13 +141,13 @@ export function Advisor({ context = [] }: { context?: AdvisorContext }) {
       </div>
 
       {context.length > 0 && (
-        <aside className="hidden self-start border-s border-mist/70 ps-8 pt-28 lg:block" aria-label="البيانات اللي يقرأها فقاع">
-          <p className="text-sm text-muted">قبل ما يرد، يقرأ فقاع مطر كل المناطق. الأعلى الحين:</p>
-          <ol className="mt-4 space-y-4">
+        <aside className="sticky top-24 hidden self-start border-s border-mist/70 ps-8 pt-6 lg:block" aria-labelledby="advisor-context">
+          <h3 id="advisor-context" className="text-sm font-semibold text-muted">الأعلى فرصة الحين</h3>
+          <ol className="mt-5 space-y-5">
             {context.map((a) => (
               <li key={a.id}>
                 <p className="flex items-baseline justify-between gap-3">
-                  <span className="font-medium">{a.name}</span>
+                  <MapLink id={a.id} className="font-medium underline-offset-4 hover:underline">{a.name}</MapLink>
                   <span className="text-sm font-semibold" style={{ color: scoreText(a.score) }}>{scoreLabel(a.score)}</span>
                 </p>
                 <p className="num text-[13px] text-muted">{a.region}، {a.wasmRain} ملم{a.thunderDays === 1 ? "، يوم رعد" : a.thunderDays === 2 ? "، يومين رعد" : a.thunderDays > 2 ? `، ${a.thunderDays} أيام رعد` : ""}</p>
@@ -199,6 +199,23 @@ function FaqqaAvatar() {
   );
 }
 
+/** Opens an area on the radar map in place; still a real link for new tabs and no-JS. */
+function MapLink({ id, className, children }: { id: string; className?: string; children: React.ReactNode }) {
+  return (
+    <a
+      href={`/?area=${id}#radar`}
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        dispatchEvent(new CustomEvent("faqqa:area", { detail: id }));
+      }}
+      className={className}
+    >
+      {children}
+    </a>
+  );
+}
+
 function Plan({ result }: { result: Result }) {
   return (
     <article className="mt-6">
@@ -218,7 +235,10 @@ function Plan({ result }: { result: Result }) {
                 <div><dt className="text-muted">متى تروح</dt><dd className="leading-7">{r.bestTime}</dd></div>
                 <div><dt className="text-muted">نصيحة</dt><dd className="leading-7">{r.tip}</dd></div>
               </dl>
-              <a href={`https://www.google.com/maps/search/?api=1&query=${r.area.lat},${r.area.lon}`} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block text-sm text-rain underline-offset-4 hover:underline">افتح المكان في خرائط قوقل</a>
+              <p className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm">
+                <MapLink id={r.areaId} className="text-rain underline-offset-4 hover:underline">شوفها على الخريطة</MapLink>
+                <a href={`https://www.google.com/maps/search/?api=1&query=${r.area.lat},${r.area.lon}`} target="_blank" rel="noopener noreferrer" className="text-rain underline-offset-4 hover:underline">افتحها في خرائط قوقل</a>
+              </p>
             </div>
             <div className="md:text-end">
               <div className="text-xs text-muted">الفرصة</div>

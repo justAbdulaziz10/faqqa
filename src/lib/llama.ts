@@ -7,7 +7,7 @@ export const TEXT_MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
 export const VISION_MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
 
 export class LlamaError extends Error {
-  constructor(message: string, public readonly kind: "config" | "upstream" | "invalid_output") {
+  constructor(message: string, public readonly kind: "config" | "upstream" | "quota" | "invalid_output") {
     super(message);
   }
 }
@@ -15,10 +15,16 @@ export class LlamaError extends Error {
 type Content = string | ({ type: "text"; text: string } | { type: "image_url"; image_url: { url: string } })[];
 export type Message = { role: "system" | "user" | "assistant"; content: Content };
 
+// Workers AI's free plan has a daily allocation that resets at 00:00 UTC. Once it is used up,
+// stop calling upstream until then (per server instance) so fallbacks answer instantly.
+let quotaUntil = 0;
+const nextUtcMidnight = () => { const d = new Date(); d.setUTCHours(24, 0, 0, 0); return d.getTime(); };
+
 async function callLlama(messages: Message[], model: string, maxTokens: number): Promise<unknown> {
   const url = process.env.LLAMA_PROXY_URL;
   const secret = process.env.LLAMA_PROXY_SECRET;
   if (!url || !secret) throw new LlamaError("Llama proxy is not configured", "config");
+  if (Date.now() < quotaUntil) throw new LlamaError("Llama daily allocation used up", "quota");
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 45_000);
@@ -30,7 +36,11 @@ async function callLlama(messages: Message[], model: string, maxTokens: number):
       signal: controller.signal,
       cache: "no-store",
     });
-    const data = (await res.json().catch(() => null)) as { response?: unknown; error?: string } | null;
+    const data = (await res.json().catch(() => null)) as { response?: unknown; error?: string; detail?: string } | null;
+    if (/\b4006\b|daily free allocation/i.test(data?.detail ?? "")) {
+      quotaUntil = nextUtcMidnight();
+      throw new LlamaError("Llama daily allocation used up", "quota");
+    }
     if (!res.ok || !data || data.error) throw new LlamaError(`Llama upstream error: ${data?.error ?? res.status}`, "upstream");
     return data.response;
   } catch (err) {

@@ -9,6 +9,7 @@ export function failFromError(err: unknown) {
   console.error("[faqqa]", err);
   if (err instanceof LlamaError) {
     if (err.kind === "config") return fail(503, "llama_unconfigured", "خدمة الذكاء الاصطناعي متوقفة الحين. جرب بعدين.");
+    if (err.kind === "quota") return fail(503, "llama_quota", "Llama خلص حصته المجانية لليوم، ويرجع الساعة 3 الفجر بتوقيت السعودية.");
     if (err.kind === "invalid_output") return fail(502, "llama_invalid", "Llama رجع رد ناقص مرتين. جرب مرة ثانية.");
     return fail(502, "llama_unavailable", "ما قدرنا نوصل لـ Llama الحين. جرب بعد شوي.");
   }

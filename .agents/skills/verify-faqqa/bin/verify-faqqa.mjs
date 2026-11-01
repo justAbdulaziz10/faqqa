@@ -22,7 +22,7 @@ const HELP = `verify-faqqa <command> [options]
   doctor                 read-only check that the instance is ours and healthy
   drive <feature>        run one self-checking drive; features:
                            home | areas-index | advisor-validation | advisor-guard |
-                           identify | identify-retry | identify-validation |
+                           identify | identify-retry | identify-evidence | identify-validation |
                            radar (needs --allow-network: calls api.open-meteo.com)
   drive all              every offline drive
   down                   stop only the PIDs this run started
@@ -49,6 +49,16 @@ const GOOD_IDENTIFY = {
   isTruffle: true, type: "زبيدي", confidence: 82, description: "فقعة بيضاء كبيرة قشرتها ناعمة",
   quality: "ممتازة", freshness: "طازجة", priceRangeSar: { min: 300, max: 600 },
   tips: ["اغسلها بماء بارد"], warnings: [],
+  signs: { eyesOrSprouts: false, purple: false, shiny: false, lumpyMatte: true }, looksLike: "فقع", colorType: "زبيدي",
+};
+// Llama's known slip: describes a lumpy, eyeless truffle and still says "not a truffle". The app must overrule it.
+const SAYS_POTATO = {
+  ...GOOD_IDENTIFY, isTruffle: false, type: "ليس فقعاً", confidence: 0, priceRangeSar: null, description: "كتل بنية فاتحة متكتلة، ما فيها عيون",
+  warnings: ["الصورة لا تظهر فقعا، بل بطاطس."], looksLike: "بطاطس",
+};
+// A real potato that Llama calls a truffle: eyes are visible, so the app must say not a truffle.
+const REAL_POTATO = {
+  ...GOOD_IDENTIFY, description: "حبات ناعمة فيها عيون وبراعم", signs: { eyesOrSprouts: true, purple: false, shiny: true, lumpyMatte: false }, looksLike: "بطاطس",
 };
 function stubServe(port, logFile) {
   let calls = 0;
@@ -65,7 +75,8 @@ function stubServe(port, logFile) {
       if (req.headers.authorization !== `Bearer ${SECRET}`) { res.writeHead(401, { "content-type": "application/json" }); return res.end(JSON.stringify({ error: "unauthorized" })); }
       // Scenario: a note containing STUB_BAD_FIRST gets an invalid reply until the app retries with feedback.
       const badFirst = text.includes("STUB_BAD_FIRST") && !text.includes("غير مطابق");
-      const response = badFirst ? "```json\n{\"isTruffle\": \"maybe\"}\n```" : "Here you go:\n```json\n" + JSON.stringify(GOOD_IDENTIFY) + "\n```";
+      const reply = text.includes("STUB_SAYS_POTATO") ? SAYS_POTATO : text.includes("STUB_REAL_POTATO") ? REAL_POTATO : GOOD_IDENTIFY;
+      const response = badFirst ? "```json\n{\"isTruffle\": \"maybe\"}\n```" : "Here you go:\n```json\n" + JSON.stringify(reply) + "\n```";
       res.writeHead(200, { "content-type": "application/json" });
       res.end(JSON.stringify({ response }));
     });
@@ -204,6 +215,19 @@ const DRIVES = {
     return { request: "POST /api/identify {note: STUB_BAD_FIRST} (stub replies invalid JSON first)", status: r.status, response: r.json, stubCalls: calls, checks: {
       status200: r.status === 200, attempts2: r.json?.attempts === 2, typeZubaidi: r.json?.result?.type === "زبيدي",
       twoLlamaCalls: calls.length === 2, secondCallCarriedFeedback: calls[1]?.retryFeedback === true,
+    } };
+  },
+  async "identify-evidence"(st) {
+    const said = await call(st, "POST", "/api/identify", { image: PNG, note: "STUB_SAYS_POTATO" });
+    const real = await call(st, "POST", "/api/identify", { image: PNG, note: "STUB_REAL_POTATO" });
+    const a = said.json?.result, b = real.json?.result;
+    return { request: "POST /api/identify (stub: truffle called potato; potato called truffle)", response: { said: said.json, real: real.json }, checks: {
+      overruledToTruffle: a?.isTruffle === true && a?.type === "زبيدي",
+      overruledPrice: a?.priceRangeSar?.min === 250 && a?.priceRangeSar?.max === 700,
+      overruledConfidenceCapped: a?.confidence >= 55 && a?.confidence <= 70,
+      staleWarningDropped: Array.isArray(a?.warnings) && a.warnings.length === 0,
+      eyesMeanPotato: b?.isTruffle === false && b?.type === "ليس فقعاً" && b?.priceRangeSar === null,
+      evidenceNotLeaked: a && !("signs" in a) && !("looksLike" in a) && !("colorType" in a),
     } };
   },
   async "identify-validation"(st) {

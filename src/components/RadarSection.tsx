@@ -30,6 +30,19 @@ export function RadarSection({ radar }: { radar: Radar }) {
     return () => cancelAnimationFrame(frame);
   }, [radar.areas]);
 
+  // Other sections (the advisor) ask the map to show an area without reloading the page.
+  useEffect(() => {
+    const show = (e: Event) => {
+      const id = (e as CustomEvent<string>).detail;
+      if (!radar.areas.some((a) => a.id === id)) return;
+      setSelectedId(id);
+      setFocus((f) => f + 1);
+      document.getElementById("radar-map")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
+    };
+    addEventListener("faqqa:area", show);
+    return () => removeEventListener("faqqa:area", show);
+  }, [radar.areas]);
+
   const rows = useMemo(() => {
     const withKm = radar.areas.map((a) => ({ ...a, km: distanceKm(city, a) }));
     return sort === "near" ? withKm.sort((a, b) => a.km - b.km) : withKm;

@@ -54,6 +54,7 @@ $V drive all            # every offline drive
 | `advisor-validation` | `POST /api/advisor` with an empty question, a 601-character question, no body, and an oversized `history` | each returns 400 `invalid_input` with the exact Arabic message, and Llama is **not** called |
 | `identify` | `POST /api/identify` with a 1×1 PNG data URL and a note | 200, `model` `Llama 4 Scout (Vision)`, `attempts` 1, `type` `زبيدي`, price 300–600. The stub saw exactly one call with `Bearer` auth, the vision model id, and **the same image the user sent** |
 | `identify-retry` | `POST /api/identify` with the note `STUB_BAD_FIRST` (the stub answers invalid JSON first) | 200, `attempts` 2, two stub calls, the second carrying the validation feedback |
+| `identify-evidence` | `POST /api/identify` twice: note `STUB_SAYS_POTATO` (stub describes a lumpy, eyeless truffle but answers "not a truffle"), then `STUB_REAL_POTATO` (stub sees eyes but answers "truffle") | The app overrules both: the first comes back `زبيدي` with price 250–700, confidence 55–70 and the stale "بطاطس" warning dropped; the second comes back `ليس فقعاً` with no price. The internal `signs`, `looksLike` and `colorType` fields never reach the response |
 | `identify-validation` | `POST /api/identify` with a GIF, then with an empty image | 400 with the exact Arabic messages, and Llama is not called |
 | `radar` | `GET /api/radar` (**needs `--allow-network`**) | 200, 24 areas sorted by score, scores 0–100, and `seasonStart` ends `-10-16` |
 
