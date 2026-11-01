@@ -1,26 +1,70 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-night: #120d09;
+  --color-night-2: #1b140e;
+  --color-night-3: #261c14;
+  --color-sand: #ecdcbc;
+  --color-sand-dim: #b9a581;
+  --color-dune: #d9a35b;
+  --color-ember: #f2b45a;
+  --color-truffle: #8b5a35;
+  --color-moss: #9fbf6b;
+  --color-rust: #d9694a;
+  --font-sans: var(--font-plex), system-ui, sans-serif;
+  --font-display: var(--font-kufi), var(--font-plex), sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+:root { color-scheme: dark; }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-night);
+  color: var(--color-sand);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
+
+/* Subtle desert night: stars + dune glow */
+.desert-sky {
+  background:
+    radial-gradient(1200px 500px at 80% -10%, rgba(242, 180, 90, 0.14), transparent 60%),
+    radial-gradient(900px 400px at 0% 10%, rgba(139, 90, 53, 0.22), transparent 60%),
+    var(--color-night);
+}
+.stars {
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(236,220,188,.7), transparent 60%),
+    radial-gradient(1px 1px at 70% 20%, rgba(236,220,188,.5), transparent 60%),
+    radial-gradient(1.5px 1.5px at 40% 70%, rgba(236,220,188,.6), transparent 60%),
+    radial-gradient(1px 1px at 85% 60%, rgba(236,220,188,.4), transparent 60%),
+    radial-gradient(1px 1px at 10% 80%, rgba(236,220,188,.5), transparent 60%),
+    radial-gradient(1.5px 1.5px at 55% 15%, rgba(236,220,188,.6), transparent 60%);
+  background-size: 600px 400px;
+}
+.grain::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .06;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+.card {
+  background: linear-gradient(180deg, rgba(38, 28, 20, 0.85), rgba(27, 20, 14, 0.85));
+  border: 1px solid rgba(236, 220, 188, 0.1);
+  border-radius: 1.25rem;
+  backdrop-filter: blur(8px);
+}
+
+.leaflet-container { background: #1b140e !important; font-family: var(--font-sans) !important; }
+.leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #261c14 !important; color: #ecdcbc !important; border: 1px solid rgba(236,220,188,.15); }
+.leaflet-control-attribution { background: rgba(18,13,9,.75) !important; color: #b9a581 !important; font-size: 10px !important; }
+.leaflet-control-attribution a { color: #d9a35b !important; }
+
+@keyframes pulse-ring { 0% { transform: scale(.8); opacity: .8 } 100% { transform: scale(2.2); opacity: 0 } }
+.pulse-ring { animation: pulse-ring 1.8s ease-out infinite; }
+@keyframes shimmer { 0% { background-position: -400px 0 } 100% { background-position: 400px 0 } }
+.skeleton { background: linear-gradient(90deg, rgba(236,220,188,.05), rgba(236,220,188,.12), rgba(236,220,188,.05)); background-size: 800px 100%; animation: shimmer 1.4s infinite linear; border-radius: .75rem; }

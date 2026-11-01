@@ -1,0 +1,8 @@
+name = "faqqa-llama"
+main = "worker.js"
+compatibility_date = "2025-10-01"
+account_id = "0240b58f03b592f60b90cd9ed2b02eb0"
+workers_dev = true
+
+[ai]
+binding = "AI"
