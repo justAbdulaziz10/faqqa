@@ -16,7 +16,9 @@ const EXAMPLES = [
   "أبغى زبيدي، وين أروح؟",
 ];
 
-export function Advisor() {
+export type AdvisorContext = { id: string; name: string; region: string; score: number; wasmRain: number; thunderDays: number }[];
+
+export function Advisor({ context = [] }: { context?: AdvisorContext }) {
   const [question, setQuestion] = useState("");
   const { city } = useCity();
   const [loading, setLoading] = useState(false);
@@ -40,7 +42,9 @@ export function Advisor() {
   }
 
   return (
-    <section id="advisor" className="mx-auto max-w-3xl scroll-mt-20 px-5 mt-20 md:mt-28" aria-labelledby="advisor-title">
+    <section id="advisor" className="mx-auto max-w-7xl scroll-mt-20 px-5 mt-20 md:mt-28" aria-labelledby="advisor-title">
+      <div className="grid gap-16 lg:grid-cols-[minmax(0,48rem)_1fr]">
+      <div>
       <h2 id="advisor-title" className="font-display text-4xl font-bold md:text-5xl">اسأل فقاع</h2>
       <p className="mt-3 leading-8 text-muted">اسأل عن طلعتك، ويرد عليك Llama بخطة مبنية على مطر اليوم في كل المناطق.</p>
 
@@ -80,6 +84,25 @@ export function Advisor() {
       <div aria-live="polite" aria-busy={loading}>
         {loading && <Loading city={city.name} />}
         {!loading && result && <Plan result={result} />}
+      </div>
+      </div>
+
+      {context.length > 0 && (
+        <aside className="hidden self-start border-s border-mist/70 ps-8 pt-28 lg:block" aria-label="البيانات اللي يقرأها فقاع">
+          <p className="text-sm text-muted">قبل ما يرد، يقرأ فقاع مطر كل المناطق. الأعلى الحين:</p>
+          <ol className="mt-4 space-y-4">
+            {context.map((a) => (
+              <li key={a.id}>
+                <p className="flex items-baseline justify-between gap-3">
+                  <span className="font-medium">{a.name}</span>
+                  <span className="text-sm font-semibold" style={{ color: scoreColor(a.score) }}>{scoreLabel(a.score)}</span>
+                </p>
+                <p className="num text-[13px] text-muted">{a.region}، {a.wasmRain} ملم{a.thunderDays > 0 ? `، رعد ${a.thunderDays} ${a.thunderDays === 1 ? "يوم" : "أيام"}` : ""}</p>
+              </li>
+            ))}
+          </ol>
+        </aside>
+      )}
       </div>
     </section>
   );

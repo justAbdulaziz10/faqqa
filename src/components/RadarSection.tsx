@@ -86,10 +86,18 @@ export function RadarSection({ radar }: { radar: Radar }) {
                 <span className="min-w-0">
                   <span className="font-medium">{a.name}</span>
                   <span className="ms-2 text-[13px] text-muted">{a.region}</span>
-                  <span className="num block text-[12px] text-muted md:hidden">{kmText(a.km)}، {a.wasmRain} ملم</span>
+                  <span className="num block text-[12px] text-muted md:hidden">
+                    {kmText(a.km)}، {a.wasmRain} ملم
+                    {a.emergenceWindow && <span className="text-dune">، الفقع من {arDate(a.emergenceWindow.from)}</span>}
+                  </span>
                 </span>
-                <span className="hidden h-1.5 overflow-hidden rounded-full bg-mist/60 md:block" aria-hidden>
-                  <span className="block h-full rounded-full bg-rain" style={{ width: `${(a.wasmRain / maxRain) * 100}%` }} />
+                <span className="hidden items-center gap-3 md:flex">
+                  <span className="h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-mist/60" aria-hidden>
+                    <span className="block h-full rounded-full bg-rain" style={{ width: `${(a.wasmRain / maxRain) * 100}%` }} />
+                  </span>
+                  <span className={`text-sm ${a.emergenceWindow ? "text-dune" : "text-muted/60"}`}>
+                    {a.emergenceWindow ? `الفقع من ${arDate(a.emergenceWindow.from)}` : <span aria-label="ما نزل مطر كافي">-</span>}
+                  </span>
                 </span>
                 <span className="num hidden text-sm text-muted md:block">{a.wasmRain} ملم</span>
                 <span className="num hidden text-sm text-muted md:block">{kmText(a.km)}</span>

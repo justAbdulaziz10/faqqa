@@ -90,7 +90,7 @@ export default async function Home() {
 
       {radar ? <RadarSection radar={radar} /> : null}
       <FieldGuide />
-      <Advisor />
+      <Advisor context={radar ? [...radar.areas].sort((a, b) => b.score - a.score).slice(0, 3).map(({ id, name, region, score, wasmRain, thunderDays }) => ({ id, name, region, score, wasmRain, thunderDays })) : []} />
       <Identify />
     </CityProvider>
   );

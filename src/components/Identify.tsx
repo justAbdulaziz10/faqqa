@@ -47,38 +47,30 @@ export function Identify() {
 
   return (
     <section id="identify" className="mx-auto max-w-7xl scroll-mt-20 px-5 mt-20 md:mt-28" aria-labelledby="identify-title">
-      <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
-        <div>
+      <div className="grid gap-x-16 gap-y-8 lg:grid-cols-[1fr_1.1fr]">
+        <div className="lg:col-start-1 lg:row-start-1">
           <h2 id="identify-title" className="font-display text-4xl font-bold md:text-5xl">زبيدي ولا خلاسي؟</h2>
           <p className="mt-3 max-w-md leading-8 text-muted">صور الفقعة، ونقول لك نوعها وجودتها وسعرها التقريبي.</p>
 
-          <ul className="mt-8 divide-y divide-mist/70 border-y border-mist/70">
-            {TYPES.map((t) => (
-              <li key={t.name} className="flex items-center gap-4 py-4">
-                <span className="size-10 shrink-0 rounded-full" style={{ background: t.swatch }} aria-hidden />
-                <div>
-                  <p className="font-semibold">{t.name}</p>
-                  <p className="text-sm text-muted">{t.desc}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
         </div>
 
-        <div>
+        <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => { e.preventDefault(); onFile(e.dataTransfer.files?.[0]); }}
-            className="relative grid aspect-[4/3] w-full place-items-center overflow-hidden rounded-[18px] border border-dashed border-mist bg-ink-2 transition hover:border-cream/50"
+            className={`relative grid w-full place-items-center overflow-hidden rounded-[18px] border border-dashed border-mist bg-ink-2 transition hover:border-cream/50 ${image ? "aspect-[4/3]" : "h-64 md:h-80"}`}
             aria-label={image ? "غير الصورة" : "اختر صورة الفقعة"}
           >
             {image
               // eslint-disable-next-line @next/next/no-img-element -- local data URL preview
               ? <img src={image} alt="صورة الفقعة المرفوعة" className="absolute inset-0 h-full w-full object-cover" />
               : <span className="flex flex-col items-center gap-3 px-6 text-center">
-                  <svg viewBox="0 0 24 24" className="size-9 text-muted" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></svg>
+                  <svg viewBox="0 0 100 90" className="h-20 w-24 text-muted" fill="none" stroke="currentColor" aria-hidden>
+                    <path d="M12 46 C8 24 30 10 50 12 C74 14 92 30 88 52 C85 74 62 84 42 80 C24 77 14 64 12 46 Z" strokeWidth="2" strokeDasharray="5 6" />
+                    <g transform="translate(35 33)" strokeWidth="2.2" strokeLinejoin="round" className="text-cream"><path d="M2 8h6l3-5h10l3 5h6v18H2z" /><circle cx="17" cy="16" r="5" /></g>
+                  </svg>
                   <span className="text-cream">صور الفقعة أو اختر صورة</span>
                   <span className="text-sm text-muted">JPG أو PNG أو WEBP</span>
                 </span>}
@@ -118,13 +110,26 @@ export function Identify() {
             )}
           </div>
         </div>
+
+        <ul className="divide-y divide-mist/70 border-y border-mist/70 lg:col-start-1 lg:row-start-2 lg:self-start">
+            {TYPES.map((t) => (
+              <li key={t.name} className="flex items-center gap-4 py-4">
+                <span className="size-11 shrink-0 rounded-[46%_54%_42%_58%/55%_44%_56%_45%] shadow-[inset_-3px_-4px_6px_rgba(0,0,0,0.25)]" style={{ background: t.swatch, rotate: t.rotate }} aria-hidden />
+                <div>
+                  <p className="font-semibold">{t.name}</p>
+                  <p className="text-sm text-muted">{t.desc}</p>
+                </div>
+              </li>
+            ))}
+        </ul>
       </div>
     </section>
   );
 }
 
 const TYPES = [
-  { name: "زبيدي", desc: "أبيض كريمي وحجمه كبير. الأغلى والأطيب.", swatch: "radial-gradient(circle at 35% 30%, #fbf4e4, #d9c6a2 70%, #a8916a)" },
-  { name: "خلاسي", desc: "قشرته حمراء مائلة للبني. سعره متوسط.", swatch: "radial-gradient(circle at 35% 30%, #e7b9a0, #a8644a 70%, #6e3b2a)" },
-  { name: "جبي", desc: "داكن وصغير. الأرخص بينهم.", swatch: "radial-gradient(circle at 35% 30%, #8a7564, #4a382c 70%, #241a14)" },
+  { name: "زبيدي", desc: "أبيض كريمي وحجمه كبير. الأغلى والأطيب.", swatch: "radial-gradient(circle at 35% 30%, #fbf4e4, #d9c6a2 70%, #a8916a)", rotate: "-8deg" },
+  { name: "خلاسي", desc: "قشرته حمراء مائلة للبني. سعره متوسط.", swatch: "radial-gradient(circle at 35% 30%, #e7b9a0, #a8644a 70%, #6e3b2a)", rotate: "20deg" },
+  { name: "جبي", desc: "داكن وصغير. الأرخص بينهم.", swatch: "radial-gradient(circle at 35% 30%, #8a7564, #4a382c 70%, #241a14)", rotate: "75deg" },
+  { name: "هبر", desc: "فاتح وأصغر من الزبيدي، وسعره أقل منه.", swatch: "radial-gradient(circle at 35% 30%, #f3e9d2, #c9b48d 70%, #8f7a55)", rotate: "140deg" },
 ];
