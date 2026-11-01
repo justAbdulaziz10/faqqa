@@ -88,6 +88,8 @@ body {
   transition: border-color .15s;
 }
 .field:focus-within, .field:focus { border-color: var(--color-bolt); outline: none; }
+/* The field border already shows focus; a second ring on the inner textarea doubles it. */
+.field textarea:focus-visible { outline: none; }
 
 .btn-bolt {
   background: var(--color-bolt);

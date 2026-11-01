@@ -42,6 +42,8 @@ export type Identify = z.infer<typeof IdentifySchema>;
 export const AdvisorRequest = z.object({
   question: z.string().trim().min(1, "اكتب سؤالك أول").max(600, "السؤال طويل. الحد 600 حرف"),
   originId: z.string().trim().min(1).max(30).optional(),
+  // Last few exchanges so follow-ups like "طيب والقصيم؟" make sense. Client-supplied, so treated as untrusted text.
+  history: z.array(z.object({ q: z.string().max(600), a: z.string().max(800) })).max(3).optional(),
 });
 
 export const IdentifyRequest = z.object({

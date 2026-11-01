@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Advisor as AdvisorResult } from "@/lib/schemas";
 import { driveHours, scoreText, scoreLabel } from "@/lib/format";
 import { CitySelect, useCity } from "./CityProvider";
@@ -18,37 +18,85 @@ const EXAMPLES = [
 
 export type AdvisorContext = { id: string; name: string; region: string; score: number; wasmRain: number; thunderDays: number }[];
 
+type Turn = { id: number; q: string; result: Result };
+
 export function Advisor({ context = [] }: { context?: AdvisorContext }) {
   const [question, setQuestion] = useState("");
   const { city } = useCity();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<Result | null>(null);
+  const [turns, setTurns] = useState<Turn[]>([]);
+  const [pending, setPending] = useState<string | null>(null);
+  const latestRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const last = turns.at(-1);
+
+  useEffect(() => {
+    if (!turns.length && !pending) return;
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    latestRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+  }, [turns.length, pending]);
 
   async function submit(e?: React.FormEvent, q = question) {
     e?.preventDefault();
-    if (!q.trim()) { setError("اكتب سؤالك أو اختر مثال من تحت."); return; }
-    setLoading(true); setError(null); setResult(null);
+    q = q.trim();
+    if (!q) { setError("اكتب سؤالك أو اختر مثال من تحت."); return; }
+    setLoading(true); setError(null); setPending(q);
     try {
-      const res = await fetch("/api/advisor", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: q, originId: city.id }) });
+      const history = turns.slice(-3).map((t) => ({ q: t.q.slice(0, 600), a: `${t.result.headline}. ${t.result.summary}`.slice(0, 800) }));
+      const res = await fetch("/api/advisor", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: q, originId: city.id, history }) });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) throw new Error(data?.error?.message ?? "ما وصل رد. جرب مرة ثانية.");
-      setResult({ ...data.result, fallback: !!data.fallback });
+      setTurns((t) => [...t, { id: Date.now(), q, result: { ...data.result, fallback: !!data.fallback } }]);
+      setQuestion("");
     } catch (err) {
       setError((err as Error).message);
     } finally {
-      setLoading(false);
+      setLoading(false); setPending(null);
     }
+  }
+
+  function reset() {
+    setTurns([]); setError(null); setQuestion("");
+    inputRef.current?.focus();
   }
 
   const examples = (
     <ul className="mt-4 flex flex-wrap gap-2" aria-label="أمثلة">
       {EXAMPLES.map((ex) => (
         <li key={ex}>
-          <button type="button" onClick={() => { setQuestion(ex); submit(undefined, ex); }} className="rounded-full border border-mist px-3.5 py-1.5 text-[13px] text-muted transition hover:border-cream/50 hover:text-cream">{ex}</button>
+          <button type="button" disabled={loading} onClick={() => { setQuestion(ex); submit(undefined, ex); }} className="rounded-full border border-mist px-3.5 py-1.5 text-[13px] text-muted transition hover:border-cream/50 hover:text-cream disabled:opacity-50">{ex}</button>
         </li>
       ))}
     </ul>
+  );
+
+  const form = (
+    <form onSubmit={submit} className="field mt-8 p-2" noValidate>
+      <label htmlFor="q" className="sr-only">{turns.length ? "سؤالك التالي" : "سؤالك"}</label>
+      <textarea
+        id="q" ref={inputRef} value={question} onChange={(e) => setQuestion(e.target.value)} maxLength={600} rows={turns.length ? 2 : 3}
+        placeholder={turns.length ? "كمل السالفة، مثلا: طيب والقصيم؟" : "مثلا: طالعين الخميس ونرجع الجمعة، وين نروح؟"}
+        aria-invalid={!!error && !question.trim()}
+        aria-describedby={error ? "advisor-error" : undefined}
+        className="block w-full resize-none bg-transparent px-3 py-2 text-lg leading-8 outline-none placeholder:text-muted/70"
+        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); if (!loading) submit(); } }}
+      />
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-mist/70 px-2 pt-2">
+        <div className="flex items-center gap-2 text-sm">
+          <label htmlFor="city-advisor" className="text-muted">طالع من</label>
+          <CitySelect id="city-advisor" />
+        </div>
+        <div className="flex items-center gap-3">
+          {turns.length > 0 && !loading && (
+            <button type="button" onClick={reset} className="text-sm text-muted underline-offset-4 hover:text-cream hover:underline">سؤال جديد</button>
+          )}
+          <button type="submit" disabled={loading} className="btn-bolt flex items-center gap-2 px-5 py-2.5 text-sm">
+            {loading ? <><Spinner /> يفكر</> : "اسأل"}
+          </button>
+        </div>
+      </div>
+    </form>
   );
 
   return (
@@ -58,35 +106,34 @@ export function Advisor({ context = [] }: { context?: AdvisorContext }) {
       <h2 id="advisor-title" className="font-display text-4xl font-bold md:text-5xl">اسأل فقاع</h2>
       <p className="mt-3 leading-8 text-muted">اسأل عن طلعتك، ويرد عليك Llama بخطة مبنية على مطر اليوم في كل المناطق.</p>
 
-      <form onSubmit={submit} className="field mt-8 p-2" noValidate>
-        <label htmlFor="q" className="sr-only">سؤالك</label>
-        <textarea
-          id="q" value={question} onChange={(e) => setQuestion(e.target.value)} maxLength={600} rows={3}
-          placeholder="مثلا: طالعين الخميس ونرجع الجمعة، وين نروح؟"
-          aria-invalid={!!error && !question.trim()}
-          aria-describedby={error ? "advisor-error" : undefined}
-          className="block w-full resize-none bg-transparent px-3 py-2 text-lg leading-8 outline-none placeholder:text-muted/70"
-          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); submit(); } }}
-        />
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-mist/70 px-2 pt-2">
-          <div className="flex items-center gap-2 text-sm">
-            <label htmlFor="city-advisor" className="text-muted">طالع من</label>
-            <CitySelect id="city-advisor" />
-          </div>
-          <button type="submit" disabled={loading} className="btn-bolt flex items-center gap-2 px-5 py-2.5 text-sm">
-            {loading ? <><Spinner /> يفكر</> : "اسأل"}
-          </button>
-        </div>
-      </form>
+      {!turns.length && !pending && <>{form}{!error && examples}</>}
 
-      {!result && !loading && examples}
+      <div aria-live="polite" aria-busy={loading}>
+        {turns.map((t) => {
+          const isLast = t === last && !pending;
+          return (
+            <div key={t.id} ref={isLast ? latestRef : undefined} className="scroll-mt-24">
+              <Asked q={t.q} />
+              {t.result.kind === "reply" || !isLast ? <Reply result={t.result} /> : <Plan result={t.result} />}
+            </div>
+          );
+        })}
+        {pending && (
+          <div ref={latestRef} className="scroll-mt-24">
+            <Asked q={pending} />
+            <Loading city={city.name} />
+          </div>
+        )}
+      </div>
 
       {error && <p id="advisor-error" role="alert" className="mt-4 text-sm text-alert">{error}</p>}
 
-      <div aria-live="polite" aria-busy={loading}>
-        {loading && <Loading city={city.name} />}
-        {!loading && result && (result.kind === "reply" ? <><Reply result={result} />{examples}</> : <Plan result={result} />)}
-      </div>
+      {(turns.length > 0 || pending) && (
+        <>
+          {form}
+          {last?.result.kind === "reply" && !loading && examples}
+        </>
+      )}
       </div>
 
       {context.length > 0 && (
@@ -110,9 +157,17 @@ export function Advisor({ context = [] }: { context?: AdvisorContext }) {
   );
 }
 
+function Asked({ q }: { q: string }) {
+  return (
+    <p className="mt-10 ms-auto w-fit max-w-[85%] rounded-2xl rounded-se-sm bg-cloud px-4 py-2.5 leading-7 text-cream">
+      <span className="sr-only">سألت: </span>{q}
+    </p>
+  );
+}
+
 function Reply({ result }: { result: Result }) {
   return (
-    <article className="mt-8 flex gap-4">
+    <article className="mt-4 flex gap-4">
       <span className="grid size-10 shrink-0 place-items-center rounded-full bg-cloud" aria-hidden>
         <svg viewBox="0 0 24 24" className="size-5 text-bolt" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z" /></svg>
       </span>
@@ -126,7 +181,7 @@ function Reply({ result }: { result: Result }) {
 
 function Plan({ result }: { result: Result }) {
   return (
-    <article className="mt-10">
+    <article className="mt-6">
       {result.fallback
         ? <p className="text-sm text-muted">Llama مشغول الحين، فهذا رد سريع من بيانات المطر مباشرة.</p>
         : <p className="text-sm text-muted">ثقة الرد: {result.confidence}</p>}
@@ -170,7 +225,7 @@ function Loading({ city }: { city: string }) {
     return () => clearInterval(t);
   }, [steps.length]);
   return (
-    <div className="mt-10 flex flex-col gap-3">
+    <div className="mt-6 flex flex-col gap-3">
       <ol className="flex flex-col gap-1.5 text-sm" aria-hidden>
         {steps.map((s, i) => (
           <li key={s} className={`flex items-center gap-2 transition-colors duration-300 ${i < step ? "text-muted" : i === step ? "text-cream" : "text-muted/40"}`}>

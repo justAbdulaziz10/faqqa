@@ -158,7 +158,12 @@ const DRIVES = {
     const empty = await call(st, "POST", "/api/advisor", { question: "   " });
     const long = await call(st, "POST", "/api/advisor", { question: "س".repeat(601) });
     const junk = await call(st, "POST", "/api/advisor", null);
-    return { request: "POST /api/advisor (empty, 601 chars, no body)", response: { empty: empty.json, long: long.json, junk: junk.json }, checks: {
+    const turn = { q: "وين أروح؟", a: "القريات." };
+    const history = await call(st, "POST", "/api/advisor", { question: "طيب والقصيم؟", history: [turn, turn, turn, turn] });
+    const badTurn = await call(st, "POST", "/api/advisor", { question: "طيب والقصيم؟", history: [{ q: "x", a: "ر".repeat(801) }] });
+    return { request: "POST /api/advisor (empty, 601 chars, no body, 4-turn history, oversized history answer)", response: { empty: empty.json, long: long.json, junk: junk.json, history: history.json, badTurn: badTurn.json }, checks: {
+      history400: history.status === 400 && history.json?.error?.code === "invalid_input",
+      historyTurn400: badTurn.status === 400 && badTurn.json?.error?.code === "invalid_input",
       empty400: empty.status === 400 && empty.json?.error?.code === "invalid_input" && empty.json?.error?.message === "اكتب سؤالك أول",
       long400: long.status === 400 && long.json?.error?.message === "السؤال طويل. الحد 600 حرف",
       noBody400: junk.status === 400 && junk.json?.ok === false,

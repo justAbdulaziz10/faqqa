@@ -23,7 +23,7 @@ Preconditions:
 - Baseline preconditions from README.md.
 
 - **City list.** Run `$V drive areas-index`. The response is `ok:true`, `areas` is 24, and `origins` has 13 entries including `riyadh`.
-- **Bad input.** Run `$V drive advisor-validation`. Each request returns 400 `invalid_input`: an empty question gives `اكتب سؤالك أول`, a 601-character question gives `السؤال طويل. الحد 600 حرف`, and no body also returns 400. `llamaNotCalled` is true.
+- **Bad input.** Run `$V drive advisor-validation`. Each request returns 400 `invalid_input`: an empty question gives `اكتب سؤالك أول`, a 601-character question gives `السؤال طويل. الحد 600 حرف`, and no body also returns 400. A `history` with 4 turns, or a turn whose answer is over 800 characters, also returns 400. `llamaNotCalled` is true.
 - **Answer (manual, network).** Run `curl -s -XPOST $BASE/api/advisor -H 'content-type: application/json' -d '{"question":"وين أطلع الأسبوع الجاي؟","originId":"riyadh"}'`. Open-Meteo is needed. The stub returns an identify-shaped payload, so expect 502 `llama_invalid` until the stub learns the advisor shape.
 
 ## Gotchas
@@ -31,3 +31,7 @@ Preconditions:
 - Validation runs before `buildRadar()`. Every valid question contacts `api.open-meteo.com`.
 - If the area or origin counts change in `src/lib/areas.ts`, update `areas-index` in the CLI.
 - An unconfigured proxy returns 503 `llama_unconfigured`. `up` always configures the stub, so this path is not driven.
+
+## Follow-up questions
+
+The client sends the last 3 exchanges as `history: [{q, a}]` (`a` is the headline and summary). The route puts them in a `<محادثة_سابقة>` block, separate from `<سؤال_المستخدم>`. Both tag names are stripped from user text. Places named anywhere in the conversation are added to the candidate areas. To check by hand, run `npm run build && npx next start -p 3123`, ask "وين أحسن مكان للفقع هالسنة؟", then ask "طيب والقصيم؟". The second answer should be about القصيم.
