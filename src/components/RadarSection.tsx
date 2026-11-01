@@ -43,7 +43,6 @@ export function RadarSection({ radar }: { radar: Radar }) {
       <div className="mx-auto flex max-w-7xl flex-wrap items-end justify-between gap-4 px-5">
         <div>
           <h2 id="radar-title" className="font-display text-4xl font-bold md:text-5xl">خريطة المطر</h2>
-          <p className="mt-3 max-w-xl leading-8 text-muted">كل دائرة منطقة فقع. لونها وحجمها يوضحون الفرصة. اضغط على أي منطقة وتطلع لك تفاصيلها.</p>
         </div>
         <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-muted" aria-label="الفرصة">
           <li className="text-cream/80">الفرصة:</li>

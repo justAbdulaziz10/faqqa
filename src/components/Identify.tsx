@@ -52,7 +52,6 @@ export function Identify() {
       <div className="grid gap-x-16 gap-y-10 lg:grid-cols-[1.15fr_1fr] lg:grid-rows-[auto_1fr]">
         <div className="lg:col-start-1 lg:row-start-1">
           <h2 id="identify-title" className="font-display text-4xl font-bold md:text-5xl">زبيدي ولا خلاسي؟</h2>
-          <p className="mt-3 max-w-md leading-8 text-muted">صور الفقعة، ونقول لك نوعها وجودتها وسعرها التقريبي.</p>
         </div>
 
         <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">

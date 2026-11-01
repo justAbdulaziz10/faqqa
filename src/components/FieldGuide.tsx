@@ -21,7 +21,6 @@ export function FieldGuide() {
       </svg>
       <div className="mx-auto max-w-7xl px-5 pt-14 md:pt-20">
         <h2 id="guide-title" className="font-display text-4xl font-bold md:text-5xl">كيف تلقى الفقع؟</h2>
-        <p className="mt-3 max-w-xl leading-8 text-ink/70">أربع علامات يعرفها أهل البر. الأولى نحسبها لك من المطر، والباقي عليك.</p>
       </div>
 
       <div className="mx-auto mt-8 max-w-6xl">
