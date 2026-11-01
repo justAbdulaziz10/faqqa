@@ -31,7 +31,9 @@ export function tidy(s: string) {
     .replace(/(^|[\s(«])و\s+(?=[\u0621-\u064A])/g, "$1و")
     // Llama drifts into Egyptian/Levantine words; swap the unambiguous ones for Saudi ones.
     .replace(/(^|[\s(«])(مش|كتير|ازاي|ليك)(?=$|[\s،.!؟:)»])/g, (_, pre: string, w: string) => pre + ({ مش: "مو", كتير: "كثير", ازاي: "كيف", ليك: "لك" } as Record<string, string>)[w])
+    // The model slips into "تنصح" (she/you advise) when it means "I advise".
     .replace(/(^|[\s(«])(ما |لا )?تنصحك(?=$|[\s،.!؟])/g, "$1$2أنصحك")
+    .replace(/(^|[\s(«])(?:لا|ما) تنصح(?= ب|$|[\s،.!؟])/g, "$1ما أنصح")
     .replace(/[ \t]{2,}/g, " ")
     .trim();
 }
