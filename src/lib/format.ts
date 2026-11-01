@@ -25,8 +25,22 @@ export function plain(s: string) {
   return s.replace(/[ً-ْٰ]/g, "");
 }
 
+/** Model text cleanup: no tashkeel, "و" attached to the next word, single spaces. */
+export function tidy(s: string) {
+  return plain(s)
+    .replace(/(^|[\s(«])و\s+(?=[\u0621-\u064A])/g, "$1و")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+/** Rough driving time at ~100 km/h, rounded to the half hour. */
+export function driveHours(km: number) {
+  const h = Math.max(0.5, Math.round((km / 100) * 2) / 2);
+  return h <= 1 ? "ساعة تقريبا" : h === 2 ? "ساعتين تقريبا" : `${h} ساعات تقريبا`;
+}
+
 export function deepPlain<T>(value: T): T {
-  if (typeof value === "string") return plain(value) as T;
+  if (typeof value === "string") return tidy(value) as T;
   if (Array.isArray(value)) return value.map(deepPlain) as T;
   if (value && typeof value === "object") {
     return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, deepPlain(v)])) as T;

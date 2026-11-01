@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Advisor as AdvisorResult } from "@/lib/schemas";
-import { scoreColor, scoreLabel } from "@/lib/format";
+import { driveHours, scoreColor, scoreLabel } from "@/lib/format";
 import { CitySelect, useCity } from "./CityProvider";
 
 type Rec = AdvisorResult["recommendations"][number] & {
@@ -119,7 +119,7 @@ function Plan({ result }: { result: Result }) {
         {result.recommendations.map((r) => (
           <li key={r.areaId} className="grid gap-3 border-b border-mist py-6 md:grid-cols-[1fr_auto]">
             <div>
-              <h4 className="text-xl font-semibold">{r.area.name}<span className="ms-2 text-sm font-normal text-muted">{r.area.region}{r.area.distanceKm != null ? `، ${r.area.distanceKm} كم تقريبا` : ""}</span></h4>
+              <h4 className="text-xl font-semibold">{r.area.name}<span className="ms-2 text-sm font-normal text-muted">{r.area.region}{r.area.distanceKm != null ? `، ${r.area.distanceKm} كم، ${driveHours(r.area.distanceKm)} سواقة` : ""}</span></h4>
               <p className="mt-2 leading-8 text-cream/90">{r.why}</p>
               <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
                 <div><dt className="text-muted">متى تروح</dt><dd className="leading-7">{r.bestTime}</dd></div>

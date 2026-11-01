@@ -9,26 +9,32 @@ import { deepPlain } from "@/lib/format";
 export const maxDuration = 60;
 
 const SYSTEM = `أنت «فقاع»: خبير سعودي في الفقع (الكمأ) يجمع بين خبرة أهل البر والعلم الحديث.
-مهمتك: الإجابة على سؤال المستخدم بالاعتماد فقط على بيانات المناخ الحية المرفقة (أمطار الوسم، أيام الرعد، رطوبة التربة، الحرارة، توقعات المطر، والمسافة من مدينته).
+مهمتك: تجاوب على سؤال المستخدم بالاعتماد فقط على البيانات الحية المرفقة.
 
 قواعد صارمة:
-- لا تخترع أرقاماً أو أماكن. استخدم فقط معرفات المناطق (areaId) الموجودة في البيانات.
-- إذا كانت المؤشرات ضعيفة فقلها بصراحة ولا تبالغ. الفقع يطلع عادة بعد ٦٠–٧٥ يوماً من أول مطر وسم فعّال (١٠ ملم أو أكثر)، والرعد يزيد الفرص.
-- اكتب بالعربية بلهجة سعودية بيضاء ودودة، بجمل قصيرة وواضحة، وبدون تشكيل.
-- قيمة label لكل منطقة هي فرصة الفقع فيها (عالية، متوسطة، ضعيفة، معدومة). استخدم نفس الكلمات.
-- راعِ المسافة من مدينة المستخدم ووقته.
-- السلامة: ذكّر بعدم دخول الأودية وقت السيل، وأخذ الماء والوقود، وعدم الدخول لأراضٍ خاصة أو محميات.
+- لا تخترع أرقام أو أماكن. استخدم فقط معرفات المناطق (areaId) الموجودة في البيانات.
+- الفقع يطلع عادة بعد 60 إلى 75 يوم من أول مطر وسم فعال (10 ملم أو أكثر)، والرعد يزيد الفرصة.
+- daysUntilEmergence لكل منطقة = كم يوم باقي على أول وقت متوقع للفقع. إذا كان أكبر من صفر فالفقع لسا ما طلع هناك: قلها بوضوح، ولا تقل إن الموسم بدأ أو إن فيه فقع الحين. إذا كان null فما نزل مطر كافي.
+- driveHours = ساعات السواقة من مدينة المستخدم. لطلعة يوم أو يومين لا تنصح بمكان أكثر من 5 ساعات سواقة. إذا الأماكن اللي فيها فرصة كلها بعيدة، قلها بصراحة واذكر كم ساعة، واقترح الأقرب حتى لو فرصته ضعيفة.
+- قيمة label هي فرصة الفقع في المنطقة: عالية، متوسطة، ضعيفة، معدومة. استخدم نفس الكلمات وبصيغة المفرد «الفرصة».
+- إذا المستخدم يتكلم عن جماعة (طالعين، نروح) خاطبهم بالجمع.
+- اكتب بلهجة سعودية بيضاء ودودة، بجمل قصيرة، بدون تشكيل، وبالأرقام الإنجليزية (1، 2، 3). لا تكتب السنة مع التواريخ.
+- السلامة: ذكر بعدم دخول الأودية وقت السيل، وأخذ الماء والوقود، وعدم الدخول لأراضي خاصة أو محميات.
 
 أرجع JSON فقط بهذا الشكل بالضبط:
 {
-  "headline": "عنوان قصير جذاب",
-  "summary": "ملخص الوضع والإجابة المباشرة على سؤاله",
-  "recommendations": [{"areaId": "معرف من البيانات", "why": "ليش هذا المكان بالأرقام", "bestTime": "أفضل توقيت للطلعة", "tip": "نصيحة عملية"}],
-  "seasonOutlook": "نظرة على الموسم وموعد الطلوع المتوقع",
+  "headline": "جواب مباشر في جملة قصيرة",
+  "summary": "الوضع والجواب على سؤاله في 2 إلى 3 جمل",
+  "recommendations": [{"areaId": "معرف من البيانات", "why": "ليش هذا المكان بالأرقام", "bestTime": "أفضل وقت للطلعة", "tip": "نصيحة عملية"}],
+  "seasonOutlook": "متى نتوقع الفقع هالموسم، بتاريخ expectedEmergence الحقيقي من البيانات",
   "safety": ["نصيحة سلامة"],
   "confidence": "منخفضة" أو "متوسطة" أو "عالية"
 }
-من ١ إلى ٣ توصيات، ومن ١ إلى ٤ نصائح سلامة.`;
+من 1 إلى 3 توصيات، ومن 1 إلى 4 نصائح سلامة.
+
+مثال على الأسلوب المطلوب (الأرقام هنا للتوضيح فقط، لا تنسخها):
+{"headline":"لسا بدري، أقرب فقع متوقع بعد 40 يوم","summary":"ما فيه فقع الحين في أي منطقة. أعلى فرصة قريبة منكم في الصمان، 4 ساعات سواقة، والفقع متوقع فيها من 10 ديسمبر.","recommendations":[{"areaId":"مثال","why":"نزل عليها 18 ملم مع يومين رعد، والفرصة متوسطة","bestTime":"من 10 ديسمبر، والصبح بدري أحسن","tip":"دوروا حول نبتة الرقروق وعند الأرض المفطورة"}],"seasonOutlook":"أول فقع متوقع من 10 ديسمبر، وإذا نزل مطر زيادة تكبر الفرصة","safety":["لا تدخلون الأودية وقت السيل"],"confidence":"متوسطة"}
+اكتب الهمزات صح (أنصح، الآن، لأن، أقرب).`;
 
 export async function POST(req: Request) {
   const limited = rateLimited(req);
@@ -42,13 +48,15 @@ export async function POST(req: Request) {
 
   try {
     const radar = await getRadar();
-    const candidates = radar.areas
-      .map((a) => ({ ...a, distanceKm: origin ? distanceKm(origin, a) : null }))
-      .sort((a, b) => b.score - (b.distanceKm ?? 0) / 40 - (a.score - (a.distanceKm ?? 0) / 40))
-      .slice(0, 10);
+    const withKm = radar.areas.map((a) => ({ ...a, distanceKm: origin ? distanceKm(origin, a) : null }));
+    const best = [...withKm].sort((a, b) => b.score - (b.distanceKm ?? 0) / 40 - (a.score - (a.distanceKm ?? 0) / 40)).slice(0, 8);
+    const near = [...withKm].sort((a, b) => (a.distanceKm ?? 0) - (b.distanceKm ?? 0)).slice(0, 4);
+    const candidates = [...new Map([...best, ...near].map((a) => [a.id, a])).values()];
+    const today = radar.generatedAt.slice(0, 10);
+    const daysUntil = (iso: string) => Math.round((Date.parse(iso) - Date.parse(today)) / 86_400_000);
 
     const context = {
-      today: radar.generatedAt.slice(0, 10),
+      today,
       wasmSeasonStart: radar.seasonStart,
       daysIntoSeason: radar.daysIntoSeason,
       userCity: origin?.name ?? "غير محددة",
@@ -66,6 +74,8 @@ export async function POST(req: Request) {
         next7DaysRainMm: a.forecastRain,
         expectedEmergence: a.emergenceWindow,
         roadDistanceKm: a.distanceKm,
+        driveHours: a.distanceKm != null ? Math.round(a.distanceKm / 10) / 10 : null,
+        daysUntilEmergence: a.emergenceWindow ? daysUntil(a.emergenceWindow.from) : null,
       })),
     };
 
