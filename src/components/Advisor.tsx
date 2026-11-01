@@ -104,7 +104,11 @@ export function Advisor({ context = [] }: { context?: AdvisorContext }) {
       <div className="grid gap-16 lg:grid-cols-[minmax(0,48rem)_1fr]">
       <div>
       <h2 id="advisor-title" className="font-display text-4xl font-bold md:text-5xl">اسأل فقاع</h2>
-      <p className="mt-3 leading-8 text-muted">اسأل عن طلعتك، ويرد عليك Llama بخطة مبنية على مطر اليوم في كل المناطق.</p>
+
+      <Bubble>
+        <p className="font-semibold leading-8">هلا، أنا فقاع</p>
+        <p className="mt-1 leading-8 text-cream/85">أقرأ مطر الوسم ورعده في 24 منطقة، وأقول لك وين تروح ومتى. اسألني عن طلعتك، أو عن أنواع الفقع وأسعاره.</p>
+      </Bubble>
 
       {!turns.length && !pending && <>{form}{!error && examples}</>}
 
@@ -167,15 +171,31 @@ function Asked({ q }: { q: string }) {
 
 function Reply({ result }: { result: Result }) {
   return (
-    <article className="mt-4 flex gap-4">
-      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-cloud" aria-hidden>
-        <svg viewBox="0 0 24 24" className="size-5 text-bolt" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z" /></svg>
-      </span>
-      <div className="min-w-0 rounded-2xl rounded-ss-sm bg-ink-2 px-5 py-4 ring-1 ring-mist/70">
-        <h3 className="font-semibold leading-8">{result.headline}</h3>
-        <p className="mt-1 leading-8 text-cream/85">{result.summary}</p>
-      </div>
+    <Bubble>
+      <h3 className="font-semibold leading-8">{result.headline}</h3>
+      <p className="mt-1 leading-8 text-cream/85">{result.summary}</p>
+    </Bubble>
+  );
+}
+
+function Bubble({ children }: { children: React.ReactNode }) {
+  return (
+    <article className="mt-6 flex gap-3 md:gap-4">
+      <FaqqaAvatar />
+      <div className="min-w-0 rounded-2xl rounded-ss-sm bg-ink-2 px-5 py-4 ring-1 ring-mist/70">{children}</div>
     </article>
+  );
+}
+
+/** The site mark (bolt over a truffle on a dune) as the advisor's face. */
+function FaqqaAvatar() {
+  return (
+    <svg viewBox="0 0 40 40" className="size-10 shrink-0 rounded-full md:size-11" aria-hidden>
+      <rect width="40" height="40" fill="#1c2944" />
+      <path d="M23.5 6 16.5 17h5L17.5 25l9-12h-5.4L24.5 6z" fill="#f4e7a1" />
+      <path d="M0 33c7-4 12-5 20-5s13 1 20 5v7H0z" fill="#e0794a" />
+      <ellipse cx="20" cy="30" rx="7.5" ry="5.2" fill="#efe7d6" />
+    </svg>
   );
 }
 
