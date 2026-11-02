@@ -26,3 +26,14 @@ Preconditions:
 
 - **Unproven**: this drive has never been executed. The build run had no network permission.
 - The response is cached (`revalidate` 3 h). Restart `up` to get fresh upstream data.
+
+
+## Area pages and calendar reminders
+
+Both read the same cached radar, so they need network access to Open-Meteo, the same as the `radar` drive. There is no scripted drive yet; check them by hand:
+
+- `GET /area/<id>` returns 200 for every id in `src/lib/areas.ts`. The `<title>` is "الفقع في <name>: متى يطلع هالسنة؟", and there is FAQPage JSON-LD whenever radar data loaded.
+- `GET /area/<unknown>` renders the not-found page with `<meta name="robots" content="noindex">`.
+- `GET /api/remind/<id>` for an area with an `emergenceWindow` returns `text/calendar` with an all-day `VEVENT` from the window start to the day after its end, plus a `VALARM` with `TRIGGER:-P2D`.
+- Without a window it returns 404 with code `no_window`; an unknown id returns 404 with code `unknown_area`.
+- `/sitemap.xml` lists all 24 `/area/` URLs.

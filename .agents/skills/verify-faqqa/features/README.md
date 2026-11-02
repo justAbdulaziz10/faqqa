@@ -7,7 +7,7 @@ These files describe what a client of Faqqa can do and how `verify-faqqa` proves
 | Home page shell | [home.md](home.md) | `home` |
 | Trip advisor | [advisor.md](advisor.md) | `areas-index`, `advisor-validation` |
 | Photo identifier | [identify.md](identify.md) | `identify`, `identify-retry`, `identify-validation` |
-| Climate radar | [radar.md](radar.md) | `radar` (network) |
+| Climate radar, area pages, reminders | [radar.md](radar.md) | `radar` (network); area pages and `.ics` checked by hand |
 
 ## Baseline preconditions
 
