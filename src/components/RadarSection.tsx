@@ -187,6 +187,15 @@ function AreaPanel({ area, km, cityName }: { area: AreaScore; km: number; cityNa
         >
           أرسلها لربعك
         </a>
+        {area.emergenceWindow && (
+          <a
+            href={`/api/remind/${area.id}`}
+            download={`faqqa-${area.id}.ics`}
+            className="rounded-full border border-mist px-4 py-2 transition hover:border-cream/50"
+          >
+            ذكرني بالموعد
+          </a>
+        )}
       </div>
     </article>
   );
