@@ -1,10 +1,16 @@
 import { cacheLife } from "next/cache";
 import { AREAS, type Area } from "./areas";
+import { groundOf, type GroundFactor } from "./ground";
 
 // Al-Wasm (الوسم) season starts on 16 October. Truffles typically emerge
 // ~60–75 days after the first effective Wasm rain, especially with thunder.
 export type AreaScore = Area & {
+  /** Final chance, 0–100: the weather score scaled by the ground. */
   score: number;
+  /** What this season's rain, thunder, soil moisture and heat alone give, 0–100. */
+  weatherScore: number;
+  /** Soil, host plants, grazing and reputation; the weather score is multiplied by `multiplier`. */
+  ground: { multiplier: number; factors: GroundFactor[] };
   label: "عالية" | "متوسطة" | "ضعيفة" | "معدومة";
   wasmRain: number;
   forecastRain: number;
@@ -106,12 +112,16 @@ export async function buildRadar(now = new Date()): Promise<Radar> {
     const tempScore = meanTemp == null ? 0.5 : meanTemp >= 12 && meanTemp <= 26 ? 1 : clamp(1 - Math.abs(meanTemp - 19) / 20);
     const forecastScore = clamp(forecastRain / 15);
     const weighted = 0.45 * rainScore + 0.15 * thunderScore + 0.15 * soilScore + 0.1 * tempScore + 0.15 * forecastScore;
-    const score = Math.round(100 * weighted * area.ground);
+    const weatherScore = Math.round(100 * weighted);
+    const ground = groundOf(area);
+    const score = Math.round(100 * weighted * ground.multiplier);
     const label: AreaScore["label"] = score >= 70 ? "عالية" : score >= 45 ? "متوسطة" : score >= 25 ? "ضعيفة" : "معدومة";
 
     return {
       ...area,
       score,
+      weatherScore,
+      ground,
       label,
       wasmRain,
       forecastRain,

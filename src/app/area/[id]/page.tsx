@@ -5,6 +5,7 @@ import { getRadar, type AreaScore } from "@/lib/radar";
 import { AREAS, distanceKm } from "@/lib/areas";
 import { arDate, arDateTime, arDays, scoreLabel, scoreText } from "@/lib/format";
 import { RainBars } from "@/components/RainBars";
+import { ScoreBreakdown } from "@/components/ScoreBreakdown";
 import { SITE } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -128,6 +129,11 @@ export default async function AreaPage({ params }: { params: Promise<{ id: strin
           <div className="mt-8">
             <RainBars daily={area.daily} />
           </div>
+
+          <section className="mt-12" aria-labelledby="why">
+            <h2 id="why" className="font-display text-2xl font-bold">ليش فرصتها {area.label}؟</h2>
+            <div className="mt-3"><ScoreBreakdown area={area} /></div>
+          </section>
 
           <section className="mt-12 space-y-8">
             {faq.map((f) => (

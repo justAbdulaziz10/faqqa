@@ -1,0 +1,178 @@
+{
+  "measuredAt": "2026-11-02",
+  "sources": {
+    "soil": "ISRIC SoilGrids 2.0, 0-15 cm, median over ~20x20 km",
+    "host": "MODIS MOD13Q1 NDVI, spring peak (Feb 18 to Apr 6), median of 2021-2025 over ~17x17 km, farms excluded",
+    "grazing": "FAO Gridded Livestock of the World 4 (2015), sheep + goats per km² over ~50x50 km; no camel layer"
+  },
+  "areas": {
+    "hafr": {
+      "sand": 33.2,
+      "clay": 28.6,
+      "ph": 8.0,
+      "springNdvi": 0.125,
+      "livestock": 12.7
+    },
+    "summan": {
+      "sand": 46.5,
+      "clay": 20.8,
+      "ph": 8.0,
+      "springNdvi": 0.102,
+      "livestock": 6.5
+    },
+    "rafha": {
+      "sand": 28.6,
+      "clay": 36.2,
+      "ph": 8.0,
+      "springNdvi": 0.111,
+      "livestock": 0.2
+    },
+    "lina": {
+      "sand": 28.4,
+      "clay": 34.1,
+      "ph": 8.0,
+      "springNdvi": 0.144,
+      "livestock": 0.2
+    },
+    "uwayqilah": {
+      "sand": 24.9,
+      "clay": 30.1,
+      "ph": 7.9,
+      "springNdvi": 0.162,
+      "livestock": 0.4
+    },
+    "arar": {
+      "sand": 32.2,
+      "clay": 30.7,
+      "ph": 8.0,
+      "springNdvi": 0.129,
+      "livestock": 0.3
+    },
+    "turaif": {
+      "sand": 27.8,
+      "clay": 31.8,
+      "ph": 8.0,
+      "springNdvi": 0.129,
+      "livestock": 0.5
+    },
+    "qurayyat": {
+      "sand": 24.8,
+      "clay": 36.5,
+      "ph": 8.0,
+      "springNdvi": 0.098,
+      "livestock": 5.8
+    },
+    "dumat": {
+      "sand": 38.9,
+      "clay": 30.4,
+      "ph": 8.1,
+      "springNdvi": 0.124,
+      "livestock": 4.9
+    },
+    "sakaka": {
+      "sand": 39.4,
+      "clay": 30.9,
+      "ph": 8.1,
+      "springNdvi": 0.119,
+      "livestock": 3.6
+    },
+    "nafud": {
+      "sand": 37.6,
+      "clay": 33.8,
+      "ph": 8.0,
+      "springNdvi": 0.148,
+      "livestock": 1.6
+    },
+    "baqaa": {
+      "sand": 33.6,
+      "clay": 33.2,
+      "ph": 8.0,
+      "springNdvi": 0.108,
+      "livestock": 28.7
+    },
+    "taymaa": {
+      "sand": 37.5,
+      "clay": 32.6,
+      "ph": 8.0,
+      "springNdvi": 0.098,
+      "livestock": 1.4
+    },
+    "asyah": {
+      "sand": 34.5,
+      "clay": 28.9,
+      "ph": 7.9,
+      "springNdvi": 0.111,
+      "livestock": 35.3
+    },
+    "artawiyah": {
+      "sand": 40.2,
+      "clay": 23.7,
+      "ph": 7.9,
+      "springNdvi": 0.133,
+      "livestock": 25.5
+    },
+    "zulfi": {
+      "sand": 43.5,
+      "clay": 22.8,
+      "ph": 7.9,
+      "springNdvi": 0.148,
+      "livestock": 28.2
+    },
+    "majmaah": {
+      "sand": 43.4,
+      "clay": 23.6,
+      "ph": 7.9,
+      "springNdvi": 0.114,
+      "livestock": 32.3
+    },
+    "rumah": {
+      "sand": 44.5,
+      "clay": 25.1,
+      "ph": 8.0,
+      "springNdvi": 0.122,
+      "livestock": 21.1
+    },
+    "khuraim": {
+      "sand": 43.5,
+      "clay": 25.0,
+      "ph": 8.0,
+      "springNdvi": 0.124,
+      "livestock": 17.3
+    },
+    "dahna": {
+      "sand": 44.1,
+      "clay": 23.2,
+      "ph": 8.0,
+      "springNdvi": 0.129,
+      "livestock": 7.6
+    },
+    "olaya": {
+      "sand": 40.6,
+      "clay": 28.4,
+      "ph": 7.9,
+      "springNdvi": 0.171,
+      "livestock": 10.6
+    },
+    "nuayriyah": {
+      "sand": 33.6,
+      "clay": 33.0,
+      "ph": 7.9,
+      "springNdvi": 0.117,
+      "livestock": 8.8
+    },
+    "sarrar": {
+      "sand": 39.8,
+      "clay": 30.2,
+      "ph": 8.0,
+      "springNdvi": 0.106,
+      "livestock": 7.8
+    },
+    "shamli": {
+      "sand": 38.8,
+      "clay": 31.7,
+      "ph": 8.0,
+      "springNdvi": 0.116,
+      "livestock": 0.5
+    }
+  }
+}

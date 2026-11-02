@@ -7,6 +7,7 @@ import type { Radar, AreaScore } from "@/lib/radar";
 import { distanceKm } from "@/lib/areas";
 import { arDate, arDateTime, scoreText, scoreLabel, SCALE } from "@/lib/format";
 import { RainBars } from "./RainBars";
+import { ScoreBreakdown } from "./ScoreBreakdown";
 import { CitySelect, useCity } from "./CityProvider";
 
 const RadarMap = dynamic(() => import("./RadarMap"), { ssr: false, loading: () => <div className="skeleton h-full w-full rounded-none" /> });
@@ -173,6 +174,10 @@ function AreaPanel({ area, km, cityName }: { area: AreaScore; km: number; cityNa
           ? <>الفقع متوقع هنا بين <b className="text-dune">{arDate(area.emergenceWindow.from)}</b> و<b className="text-dune">{arDate(area.emergenceWindow.to)}</b>.</>
           : <>ما نزل عليها مطر كافي للحين، فما نتوقع فقع قريب.</>}
       </p>
+      <details className="group text-sm">
+        <summary className="w-fit cursor-pointer text-muted marker:text-dune hover:text-cream">ليش فرصتها {area.label}؟</summary>
+        <div className="mt-3"><ScoreBreakdown area={area} compact /></div>
+      </details>
       <div className="flex flex-wrap gap-2 text-sm">
         <a
           href={`https://www.google.com/maps/dir/?api=1&destination=${area.lat},${area.lon}`}

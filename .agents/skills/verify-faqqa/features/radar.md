@@ -1,6 +1,6 @@
 # Climate radar
 
-`GET /api/radar` scores the 24 known truffle grounds from Open-Meteo rain, thunder, soil moisture, temperature, and the 7-day forecast since the Wasm season start (16 October). It returns them sorted by score, each with a label and an expected emergence window.
+`GET /api/radar` scores the 24 known truffle grounds from Open-Meteo rain, thunder, soil moisture, temperature, and the 7-day forecast since the Wasm season start (16 October). The weather score is then multiplied by a ground factor (reputation, host-plant green-up, soil type, grazing) read from `src/data/ground.json`. It returns them sorted by score, each with a label, `weatherScore`, `ground.factors`, and an expected emergence window.
 
 ## Sub-features
 
@@ -37,3 +37,5 @@ Both read the same cached radar, so they need network access to Open-Meteo, the 
 - `GET /api/remind/<id>` for an area with an `emergenceWindow` returns `text/calendar` with an all-day `VEVENT` from the window start to the day after its end, plus a `VALARM` with `TRIGGER:-P2D`.
 - Without a window it returns 404 with code `no_window`; an unknown id returns 404 with code `unknown_area`.
 - `/sitemap.xml` lists all 24 `/area/` URLs.
+
+- **Ground factors (manual).** `curl -s $BASE/api/radar` and check that each area has `weatherScore` and four `ground.factors` (reputation, host, soil, grazing) with `fit` between 0 and 1. On `/area/<id>`, the "ليش فرصتها …؟" section lists the four factors, and their point deductions add up to `weatherScore − score` (give or take 1 from rounding). The map panel shows the same list under the "ليش فرصتها …؟" toggle.

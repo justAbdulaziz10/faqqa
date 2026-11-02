@@ -80,7 +80,9 @@ The expected output format is defined in `src/lib/schemas.ts`, and every respons
 ## Scoring model
 
 ```
-score = 100 × ground × (0.45·rain + 0.15·thunder + 0.15·soil + 0.10·temp + 0.15·forecast)
+weather = 0.45·rain + 0.15·thunder + 0.15·soil + 0.10·temp + 0.15·forecast
+ground  = 0.35·reputation + 0.25·host + 0.20·soilType + 0.20·grazing
+score   = 100 × weather × (0.55 + 0.45·ground)
 ```
 
 | Factor | Source | Normalisation |
@@ -90,7 +92,12 @@ score = 100 × ground × (0.45·rain + 0.15·thunder + 0.15·soil + 0.10·temp +
 | `soil` | Soil moisture at 3–9 cm depth | 0.05 → 0.25 m³/m³ |
 | `temp` | Mean temperature over the last 14 days | ideal 12–26 °C |
 | `forecast` | Rain expected in the next 7 days | full at 15 mm |
-| `ground` | How well known the area is for truffles (folk knowledge) | 0.6 – 1.0 |
+| `reputation` | How well known the area is for truffles (folk knowledge, `areas.ts`) | 0.6 → 1.0 |
+| `host` | Spring green-up of natural cover, a proxy for Rogrog (*Helianthemum*) and other host shrubs: MODIS MOD13Q1 NDVI, greenest composite Feb 18 – Apr 6, median of 2021–2025 over ~17×17 km, irrigated pixels (NDVI > 0.4) dropped | NDVI 0.09 → 0.16 |
+| `soilType` | ISRIC SoilGrids 2.0, sand / clay / pH at 0–15 cm. Sandy loam to loam and alkaline is best; heavy clay and loose dune sand score lower | see `src/lib/ground.ts` |
+| `grazing` | FAO Gridded Livestock of the World 4 (2015), sheep + goats per km² over ~50×50 km (no camel layer) | 0 → 50 head/km² |
+
+Weather changes every few hours; the ground factors don't, so `scripts/ground-factors.py` measures them once a season into `src/data/ground.json`. The radar panel and each area page show how many points each ground factor took off the weather score ("ليش فرصتها كذا؟"). GBIF occurrence records of *Helianthemum* were tried for the host factor and rejected: 97% of the Saudi records come from a single survey, so a missing record does not mean a missing plant.
 
 The score is shown to users as one of four words: **عالية** (high, ≥ 70), **متوسطة** (medium, ≥ 45), **ضعيفة** (low, ≥ 25) and **معدومة** (none).
 
@@ -123,6 +130,8 @@ src/
   lib/
     areas.ts              # truffle grounds + origin cities
     radar.ts              # Open-Meteo fetch + scoring model
+    ground.ts             # soil, host plant, grazing and reputation factors
+  data/ground.json        # measured ground factors (from scripts/ground-factors.py)
     llama.ts              # Llama client: JSON coercion, validation, retry
     schemas.ts            # zod schemas for requests and Llama output
 llama-worker/             # optional fallback: Cloudflare Worker proxy to Workers AI
@@ -151,6 +160,9 @@ Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind 
 ## Data sources and licences
 
 - Weather and climate: [Open-Meteo](https://open-meteo.com) (CC BY 4.0), which aggregates ECMWF, DWD ICON and ERA5
+- Soil: [ISRIC SoilGrids 2.0](https://soilgrids.org) (CC BY 4.0)
+- Vegetation: NASA MODIS MOD13Q1 NDVI via the [ORNL DAAC MODIS web service](https://modis.ornl.gov/data/modis_webservice.html) (public domain)
+- Livestock: FAO [Gridded Livestock of the World 4](https://dataverse.harvard.edu/dataverse/glw_4) (CC0)
 - Satellite imagery and map labels: © Esri, Maxar, Earthstar Geographics
 - Hero image: AI-generated with FLUX.1 [schnell] on Cloudflare Workers AI
 - AI model: Meta Llama 4, subject to the [Llama 4 Community License](https://www.llama.com/llama4/license/)
@@ -159,7 +171,7 @@ Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind 
 
 - Climate models estimate rain on a coarse grid, so the real rain in a specific *rawdah* or valley can differ.
 - Area coordinates are approximate and represent well-known regions, not confirmed spots.
-- Soil type, host plants (e.g. *Helianthemum*) and grazing are not modelled.
+- Ground factors are coarse: SoilGrids is weak in deserts, spring green-up tracks shrubs in general rather than Rogrog itself, and the livestock map is from 2015 with no camels.
 - Photo identification and prices are rough guidance only.
 
 ---
