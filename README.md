@@ -34,15 +34,15 @@ Next.js Route Handlers (Vercel)
    ├─ Per-IP limits: 8 requests a minute, plus a daily cap (40 questions, 15 photos)
    ├─ Repeated questions answered from a cache keyed by the rain-data timestamp
    ├─ lib/radar.ts  → Open-Meteo (ECMWF / DWD ICON / ERA5) → scoring model (cached for 1h via "use cache")
-   └─ lib/llama.ts  → Groq free tier → meta-llama/llama-4-scout-17b-16e-instruct
-                       optional fallbacks: Vercel AI Gateway, Cloudflare Worker proxy (llama-worker/)
+   └─ lib/llama.ts  → Cloudflare Worker proxy (llama-worker/) → Workers AI @cf/meta/llama-4-scout-17b-16e-instruct
+                       optional fallback: Vercel AI Gateway (off by default)
                        ├─ response_format: json_object
                        ├─ strict zod schema validation + check that every areaId really exists
                        └─ one automatic retry with the validation errors sent back to the model,
                           otherwise a clear error to the user (never a half-broken result)
 ```
 
-No model credential reaches the browser: keys live only in server environment variables. The Groq account has no payment method, so hitting its free limits returns an error instead of a bill. A provider that reports its quota is used up is skipped until it resets, so fallbacks answer instantly.
+No model credential reaches the browser: keys live only in server environment variables. The Cloudflare account is on the free plan with no payment method, so hitting the daily limit returns an error instead of a bill. A provider that reports its quota is used up is skipped until it resets, so fallbacks answer instantly.
 
 ## What Llama returns
 
@@ -132,7 +132,7 @@ llama-worker/             # optional fallback: Cloudflare Worker proxy to Worker
 
 ```bash
 npm install
-echo "GROQ_API_KEY=gsk_..." > .env.local       # free key from console.groq.com, no card needed
+# .env.local: LLAMA_PROXY_URL and LLAMA_PROXY_SECRET from your deployed llama-worker (see below)
 npm run dev
 ```
 
@@ -140,13 +140,13 @@ npm run dev
 
 Set `AI_GATEWAY_ENABLED=1` on Vercel (OIDC auth) or `AI_GATEWAY_API_KEY` elsewhere. Its free monthly credits need a card on file on the Vercel team, so it is off by default.
 
-### Optional: Cloudflare Workers AI fallback
+### Cloudflare Workers AI proxy
 
 `llama-worker/` is a small proxy to Workers AI. Deploy it with `npx wrangler deploy` and `npx wrangler secret put PROXY_SECRET`, then set `LLAMA_PROXY_URL` and `LLAMA_PROXY_SECRET`. Its free plan allows 10,000 neurons a day, which is roughly 100 to 150 calls once photos are involved.
 
 ## Tech stack
 
-Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind CSS 4 · zod · Leaflet with Esri World Imagery tiles · Meta Llama 4 Scout via Groq · Vercel
+Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind CSS 4 · zod · Leaflet with Esri World Imagery tiles · Meta Llama 4 Scout on Cloudflare Workers AI · Vercel
 
 ## Data sources and licences
 

@@ -16,17 +16,14 @@ type Content = string | ({ type: "text"; text: string } | { type: "image_url"; i
 export type Message = { role: "system" | "user" | "assistant"; content: Content };
 
 // Providers, tried in order, each only when configured:
-// 1. Groq free tier (GROQ_API_KEY): no card on file, so it can never bill.
-// 2. Vercel AI Gateway (AI_GATEWAY_ENABLED=1 or AI_GATEWAY_API_KEY); its free credits need a card on the team.
-// 3. A Cloudflare Worker proxy to Workers AI (LLAMA_PROXY_URL + LLAMA_PROXY_SECRET).
+// 1. A Cloudflare Worker proxy to Workers AI (LLAMA_PROXY_URL + LLAMA_PROXY_SECRET), free plan with no card.
+// 2. Vercel AI Gateway, only when AI_GATEWAY_ENABLED=1 or AI_GATEWAY_API_KEY is set; its free credits need a card.
 // LLAMA_PROVIDER=proxy forces the proxy (the verify harness uses this with its local stub).
-const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-const GROQ_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct";
 const GATEWAY_URL = "https://ai-gateway.vercel.sh/v1/chat/completions";
 const GATEWAY_MODEL = "meta/llama-4-scout";
 
 // When a provider says it is out of quota (or not set up), skip it for a while so fallbacks answer instantly.
-const skipUntil = { groq: 0, gateway: 0, proxy: 0 };
+const skipUntil = { proxy: 0, gateway: 0 };
 type ProviderName = keyof typeof skipUntil;
 const nextUtcMidnight = () => { const d = new Date(); d.setUTCHours(24, 0, 0, 0); return d.getTime(); };
 
@@ -55,21 +52,6 @@ async function post(url: string, token: string, body: object): Promise<{ status:
 function completionText(data: Record<string, unknown> | null) {
   const choices = data?.choices as { message?: { content?: unknown } }[] | undefined;
   return choices?.[0]?.message?.content ?? null;
-}
-
-async function viaGroq(body: Body): Promise<unknown> {
-  const key = process.env.GROQ_API_KEY;
-  if (!key) throw new LlamaError("Groq is not configured", "config");
-  const { status, data } = await post(GROQ_URL, key, { ...body, model: GROQ_MODEL });
-  const error = data?.error as { type?: string; code?: string; message?: string } | undefined;
-  if (status === 200 && !error) return completionText(data);
-  if (status === 429) {
-    // Free-tier limits: per-minute ones clear quickly, the daily one resets at 00:00 UTC.
-    const daily = /per day|RPD|TPD/i.test(error?.message ?? "");
-    skipUntil.groq = daily ? nextUtcMidnight() : Date.now() + 60_000;
-    throw new LlamaError(`Groq rate limit (${daily ? "daily" : "per minute"})`, "quota");
-  }
-  throw new LlamaError(`Groq error ${status}: ${error?.code ?? error?.type ?? "unknown"}`, "upstream");
 }
 
 async function viaGateway(body: Body): Promise<unknown> {
@@ -109,12 +91,12 @@ async function viaProxy(body: Body, model: string): Promise<unknown> {
 
 async function callLlama(messages: Message[], model: string, maxTokens: number): Promise<unknown> {
   const body: Body = { messages, max_tokens: maxTokens, temperature: 0.3, response_format: { type: "json_object" } };
-  const order: ProviderName[] = process.env.LLAMA_PROVIDER === "proxy" ? ["proxy"] : ["groq", "gateway", "proxy"];
+  const order: ProviderName[] = process.env.LLAMA_PROVIDER === "proxy" ? ["proxy"] : ["proxy", "gateway"];
   const errors: LlamaError[] = [];
   for (const name of order) {
     if (Date.now() < skipUntil[name]) { errors.push(new LlamaError(`${name} skipped`, name === "gateway" ? "config" : "quota")); continue; }
     try {
-      return name === "groq" ? await viaGroq(body) : name === "gateway" ? await viaGateway(body) : await viaProxy(body, model);
+      return name === "gateway" ? await viaGateway(body) : await viaProxy(body, model);
     } catch (err) {
       if (!(err instanceof LlamaError)) throw err;
       if (err.kind !== "config") console.error(`[llama] ${name} failed:`, err.message);
