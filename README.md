@@ -34,15 +34,15 @@ Next.js Route Handlers (Vercel)
    ├─ Per-IP limits: 8 requests a minute, plus a daily cap (40 questions, 15 photos)
    ├─ Repeated questions answered from a cache keyed by the rain-data timestamp
    ├─ lib/radar.ts  → Open-Meteo (ECMWF / DWD ICON / ERA5) → scoring model (cached for 1h via "use cache")
-   └─ lib/llama.ts  → Vercel AI Gateway (OIDC, no stored key) → meta/llama-4-scout
-                       fallback: optional Cloudflare Worker proxy (llama-worker/) while LLAMA_PROXY_URL is set
+   └─ lib/llama.ts  → Groq free tier → meta-llama/llama-4-scout-17b-16e-instruct
+                       optional fallbacks: Vercel AI Gateway, Cloudflare Worker proxy (llama-worker/)
                        ├─ response_format: json_object
                        ├─ strict zod schema validation + check that every areaId really exists
                        └─ one automatic retry with the validation errors sent back to the model,
                           otherwise a clear error to the user (never a half-broken result)
 ```
 
-No model credential reaches the browser. On Vercel, the server authenticates to AI Gateway with the deployment's short-lived OIDC token, so there is no API key to store or leak. A provider that reports its quota is used up is skipped until it resets, so fallbacks answer instantly.
+No model credential reaches the browser: keys live only in server environment variables. The Groq account has no payment method, so hitting its free limits returns an error instead of a bill. A provider that reports its quota is used up is skipped until it resets, so fallbacks answer instantly.
 
 ## What Llama returns
 
@@ -132,11 +132,13 @@ llama-worker/             # optional fallback: Cloudflare Worker proxy to Worker
 
 ```bash
 npm install
-vercel link && vercel env pull .env.local   # gives a local OIDC token for AI Gateway
+echo "GROQ_API_KEY=gsk_..." > .env.local       # free key from console.groq.com, no card needed
 npm run dev
 ```
 
-Outside Vercel, set `AI_GATEWAY_API_KEY` instead. AI Gateway's free monthly credits need a card on file on the Vercel team.
+### Optional: Vercel AI Gateway
+
+Set `AI_GATEWAY_ENABLED=1` on Vercel (OIDC auth) or `AI_GATEWAY_API_KEY` elsewhere. Its free monthly credits need a card on file on the Vercel team, so it is off by default.
 
 ### Optional: Cloudflare Workers AI fallback
 
@@ -144,7 +146,7 @@ Outside Vercel, set `AI_GATEWAY_API_KEY` instead. AI Gateway's free monthly cred
 
 ## Tech stack
 
-Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind CSS 4 · zod · Leaflet with Esri World Imagery tiles · Meta Llama 4 Scout via Vercel AI Gateway · Vercel
+Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind CSS 4 · zod · Leaflet with Esri World Imagery tiles · Meta Llama 4 Scout via Groq · Vercel
 
 ## Data sources and licences
 
