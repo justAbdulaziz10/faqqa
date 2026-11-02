@@ -75,3 +75,11 @@ export const scoreText = (score: number) => {
   const b = band(score);
   return "text" in b ? b.text : b.color;
 };
+
+/** Day counts the way people say them: "يوم واحد"، "يومين"، "3 أيام"، "11 يوم". */
+export function arDays(n: number) {
+  if (n === 1) return "يوم واحد";
+  if (n === 2) return "يومين";
+  if (n >= 3 && n <= 10) return `${n} أيام`;
+  return `${n} يوم`;
+}

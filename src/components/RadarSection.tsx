@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { Radar, AreaScore } from "@/lib/radar";
 import { distanceKm } from "@/lib/areas";
@@ -147,7 +148,9 @@ function AreaPanel({ area, km, cityName }: { area: AreaScore; km: number; cityNa
     <article className="panel mt-4 flex flex-col gap-4 bg-ink-2/95 p-5 backdrop-blur md:mt-0">
       <header className="flex items-start justify-between gap-3" aria-live="polite" aria-atomic>
         <div>
-          <h3 className="font-display text-2xl font-bold">{area.name}</h3>
+          <h3 className="font-display text-2xl font-bold">
+            <Link href={`/area/${area.id}`} className="underline decoration-mist decoration-1 underline-offset-[6px] transition hover:decoration-cream">{area.name}</Link>
+          </h3>
           <p className="text-sm text-muted">{area.region}، {km < 15 ? <>قريبة من {cityName}</> : <>تبعد عن {cityName} <span className="num">{km}</span> كم</>}</p>
         </div>
         <div className="text-end">
