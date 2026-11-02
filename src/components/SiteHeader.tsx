@@ -12,7 +12,7 @@ export function SiteHeader() {
   return (
     <>
       <p className="bg-ink-2 px-4 py-1.5 text-center text-[12px] leading-5 text-muted">
-        مشروع تجريبي<span className="hidden sm:inline"> لأكاديمية طويق</span>. الأرقام تقريبية<span className="hidden sm:inline"> وليست دقيقة 100٪</span>.{" "}
+        <span className="hidden sm:inline">مشروع تجريبي لمعسكر أكاديمية طويق، و</span>التوقعات تقديرية مو مضمونة.{" "}
         <Link href="/terms" className="text-cream underline underline-offset-4">الشروط</Link>
       </p>
       <header className="sticky top-0 z-[1000] border-b border-mist/60 bg-ink/85 backdrop-blur-md">

@@ -9,7 +9,7 @@ export function SiteFooter() {
         <div className="max-w-md">
           <div className="flex items-center gap-2.5"><Logo className="size-7" /><span className="font-display text-2xl font-bold leading-none">فقاع</span></div>
           <p className="mt-4 text-sm leading-7 text-muted">
-            مشروع شخصي سويته لأنه مطلوب في معسكر أكاديمية طويق. الأرقام تقريبية وليست دقيقة 100٪، وما تضمن وجود الفقع في أي مكان.
+            يقرأ مطر الوسم ورعده، ويقدر متى يطلع الفقع في 24 منطقة.
           </p>
         </div>
         <nav aria-label="روابط الموقع" className="grid content-start gap-2.5 text-sm">
